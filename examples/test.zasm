@@ -1,0 +1,5 @@
+$define _INCLUDE_
+
+$include inctest.zasm
+
+$define HELLO_WORLD "Hello World!"
