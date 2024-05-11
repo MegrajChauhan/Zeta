@@ -1,5 +1,0 @@
-$ifdef HELLO_WORLD 
-$define PRINT 123
-$elif defined(_INCLUDE_)
-$undef _INCLUDE_
-$endif

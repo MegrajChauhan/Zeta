@@ -71,13 +71,82 @@ bool zeta::prep::Preprocessor::process()
     file_contents = _r.get_file_contents();
     // we have the file now
     // we will process line by line
-    for (auto _l : file_contents)
+    if (file_contents.size() == 0)
+        return true;
+    file_contents.push_back("!!~~");
+    while (true)
     {
-        if (_l.contains('$'))
+        auto _l = file_contents[line];
+        if (_l == "!!~~")
+            break;
+        col = 0;
+        auto _st = _l.begin();
+        // check if there is "use" here
+        std::string word;
+        // If the line is including some other file, then use must be the first word
+        // There can't be multiple "use" in the same line
+        while (*_st == ' ' || *_st == '\t')
         {
-            // we should process this line only if it contains '$'
+            _st++;
+            col++;
         }
+        if (*_st == ';' && _st != _l.end() && *(_st + 1) == ';')
+        {
+            // skip everything here
+        }
+        else if (std::isalpha(*_st))
+        {
+            while (std::isalpha(*_st))
+            {
+                word += *_st;
+                _st++;
+                col++;
+            }
+            if (word == "use")
+            {
+                // get the path
+                std::string path;
+                while (*_st == ' ' || *_st == '\t')
+                {
+                    _st++;
+                    col++;
+                }
+                // until the end of line
+                while (_st != _l.end())
+                {
+                    path += *_st;
+                    _st++;
+                    col++;
+                }
+                Preprocessor _p(path);
+                if (std::find(included_files.begin(), included_files.end(), path) == included_files.end())
+                {
+                    if (!_p.process())
+                    {
+                        err_col = _p.err_col;
+                        err_line = _p.err_line;
+                        err_msg = _p.err_msg;
+                        wrong_line = _p.wrong_line;
+                        state = _p.state;
+                        return false;
+                    }
+                    std::string _ = "#" + path;
+                    included_files.push_back(path);
+                    _p.file_contents.insert(_p.file_contents.begin(), _); // for the lexer
+                    _p.file_contents.insert(_p.file_contents.end(), "--");
+                    file_contents.erase(file_contents.begin() + line);
+                    file_contents.insert(file_contents.begin() + line, _p.file_contents.begin(), _p.file_contents.end());
+                }
+                else
+                {
+                    file_contents[line] = '\n';
+                }
+            }
+        }
+        line++;
     }
+    file_contents.pop_back();
+    return true;
 }
 
 /*

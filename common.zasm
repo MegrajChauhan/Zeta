@@ -1,0 +1,5 @@
+.text:
+
+proc _a
+proc _b
+proc _c

@@ -6,14 +6,16 @@
 #include <vector>
 #include <unordered_map>
 #include <fstream>
+#include <algorithm>
 #include "../utils/config.hpp"
 #include "error.hpp"
+#include "instructions.hpp"
 
 namespace zeta
 {
     namespace prep
     {
-        LOCAL std::unordered_map<std::string, std::string> _inc_list_pair;
+        LOCAL std::vector<std::string> included_files;
 
         class Reader
         {
@@ -42,7 +44,14 @@ namespace zeta
             std::string inp_file;
             std::vector<std::string> file_contents;
             std::string result; // the result of Preprocessing
-            error::_STATES_ state = _NORMAL_;
+            error::_STATES_ state = error::_NORMAL_;
+
+            // For letting others know about errors
+            size_t err_line, err_col;
+            std::string err_msg, wrong_line;
+           
+            size_t line = 0;
+            size_t col = 0;
 
         public:
             Preprocessor(std::string);

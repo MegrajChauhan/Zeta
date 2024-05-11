@@ -1,0 +1,14 @@
+use math.zasm
+
+;; There will not be any preprocessing except for includes
+;; The assembler will make sure that one file is included only once
+
+.text:
+proc main
+
+main:
+   call addX
+
+use string.zasm
+use math.zasm
+use common.zasm

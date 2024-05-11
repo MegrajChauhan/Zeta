@@ -1,0 +1,14 @@
+.text:
+proc addX
+
+addX:
+  mov Ma, 12
+  mov Mb, 22
+  add Ma, Mb
+  ret
+
+use common.zasm
+
+;; The functionality of math.zasm
+
+;; use this.zasm ;; will this be used?
