@@ -324,3 +324,14 @@ void zeta::lexer::Lexer::_add_error_(error::_STATES_ _s, std::string msg)
         error::remove_file();
     }
 }
+
+void zeta::lexer::Lexer::_register_parser_error_(std::string msg, std::string tok = "")
+{
+    if (tok.length() == 0)
+    {
+        col = 0;
+    }
+    else
+        col -= tok.length();
+    _add_error_(error::_PARSE_ERROR_, msg);
+}

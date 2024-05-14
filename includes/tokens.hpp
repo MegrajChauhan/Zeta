@@ -1,3 +1,27 @@
+/*
+  MIT License
+
+  Copyright (c) 2024 MegrajChauhan
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+*/
+
 #ifndef _TOKENS_
 #define _TOKENS_
 
@@ -176,6 +200,234 @@ namespace zeta
             _TT_INST_DEC,
             // we ignore commas, they are not absolutely necessary and the assembler won't even complain
             // about not using it. They are just there to improve readability
+        };
+    };
+
+    namespace nodes
+    {
+                enum NodeType
+        {
+            _TYPE_DATA,
+            _TYPE_INST,
+        };
+
+        enum DataType
+        {
+            _TYPE_BYTE,
+            _TYPE_WORD,
+            _TYPE_DWORD,
+            _TYPE_QWORD,
+            _TYPE_STRING,
+            _TYPE_RESB,
+            _TYPE_RESW,
+            _TYPE_RESD,
+            _TYPE_RESQ,
+            _TYPE_FLOAT,
+            _TYPE_LFLOAT,
+        };
+
+        enum NodeKind
+        {
+            // the kind of node(Not Type but like move, define byte, string etc)
+            _DEF_BYTE, // defines a byte
+            _DEF_WORD,
+            _DEF_DWORD,
+            _DEF_QWORD,
+            _DEF_STRING,
+            _DEF_RESB,
+            _DEF_RESW,
+            _DEF_RESD,
+            _DEF_RESQ,
+            _DEF_FLOAT,
+            _DEF_LFLOAT,
+            // any label that is declared as proc is a procedure while any other are just labels
+            _PROC_DECLR, // procedure declaration
+            _LABEL,      // A label[Unless semantically verified even procedure definition is a label]
+            _INST_NOP,
+            _INST_MOV_REG_IMM,
+            _INST_MOV_REG_REG,
+            _INST_MOV_REG_IMMQ,
+            _INST_MOV_REG_MOVEB,
+            _INST_MOV_REG_MOVEW,
+            _INST_MOV_REG_MOVED,
+            _INST_MOV_REG_REG8,
+            _INST_MOV_REG_REG16,
+            _INST_MOV_REG_REG32,
+            _INST_MOV_REG_IMM8,
+            _INST_MOV_REG_IMM16,
+            _INST_MOV_REG_IMM32,
+            _INST_MOVF,
+            _INST_MOVLF,
+
+            _INST_MOVSX_REG_REG8,
+            _INST_MOVSX_REG_REG16,
+            _INST_MOVSX_REG_REG32,
+            _INST_MOVSX_REG_IMM8,
+            _INST_MOVSX_REG_IMM16,
+            _INST_MOVSX_REG_IMM32,
+
+            _INST_OUTR,
+            _INST_UOUTR,
+
+            _INST_CIN,
+            _INST_SIN,
+            _INST_COUT,
+            _INST_SOUT,
+            _INST_IN,
+            _INST_OUT,
+            _INST_INW,
+            _INST_OUTW,
+            _INST_IND,
+            _INST_OUTD,
+            _INST_INQ,
+            _INST_OUTQ,
+            _INST_UIN,
+            _INST_UOUT,
+            _INST_UINW,
+            _INST_UOUTW,
+            _INST_UIND,
+            _INST_UOUTD,
+            _INST_UINQ,
+            _INST_UOUTQ,
+            _INST_INF,
+            _INST_OUTF,
+            _INST_INLF,
+            _INST_OUTLF,
+
+            _INST_ADD_IMM,
+            _INST_ADD_REG,
+            _INST_IADD_IMM,
+            _INST_IADD_REG,
+
+            _INST_SUB_IMM,
+            _INST_SUB_REG,
+            _INST_ISUB_IMM,
+            _INST_ISUB_REG,
+
+            _INST_MUL_IMM,
+            _INST_MUL_REG,
+            _INST_IMUL_IMM,
+            _INST_IMUL_REG,
+
+            _INST_DIV_IMM,
+            _INST_DIV_REG,
+            _INST_IDIV_IMM,
+            _INST_IDIV_REG,
+
+            _INST_MOD_IMM,
+            _INST_MOD_REG,
+            _INST_IMOD_IMM,
+            _INST_IMOD_REG,
+
+            _INST_FADD_REG,
+            _INST_FSUB_REG,
+            _INST_FMUL_REG,
+            _INST_FDIV_REG,
+            _INST_FADD_IMM,
+            _INST_FSUB_IMM,
+            _INST_FMUL_IMM,
+            _INST_FDIV_IMM,
+
+            _INST_LFADD_REG,
+            _INST_LFSUB_REG,
+            _INST_LFMUL_REG,
+            _INST_LFDIV_REG,
+            _INST_LFADD_IMM,
+            _INST_LFSUB_IMM,
+            _INST_LFMUL_IMM,
+            _INST_LFDIV_IMM,
+
+            // even though we have two kinds of jumps, the jmp_off won't be used
+            // instead the jmp_addr variant will be used
+            _INST_JMP,
+            _INST_CMP_REG, // comparing two registers
+            _INST_CMP_IMM, // comparing with immediates
+
+            _INST_JNZ,
+            _INST_JZ,
+            _INST_JNE,
+            _INST_JE,
+            _INST_JNC,
+            _INST_JC,
+            _INST_JNO,
+            _INST_JO,
+            _INST_JNN,
+            _INST_JN,
+            _INST_JNG,
+            _INST_JG,
+            _INST_JNS,
+            _INST_JS,
+            _INST_JGE,
+            _INST_JSE,
+
+            _INST_INC,
+            _INST_DEC,
+
+            _INST_AND_IMM,
+            _INST_AND_REG,
+            _INST_OR_IMM,
+            _INST_OR_REG,
+            _INST_XOR_IMM,
+            _INST_XOR_REG,
+            _INST_NOT,
+
+            _INST_LSHIFT,
+            _INST_RSHIFT,
+
+            _INST_CFLAGS,
+            _INST_RESET,
+            _INST_CLZ,
+            _INST_CLN,
+            _INST_CLC,
+            _INST_CLO,
+            _INST_RET,
+            _INST_CALL,
+            _INST_SVA,
+            _INST_SVC,
+            _INST_PUSH_IMM,
+            _INST_PUSH_REG,
+            _INST_PUSHA,
+            _INST_POP,
+            _INST_POPA,
+
+            _INST_LEA,
+            
+            _INST_STORE,
+            _INST_LOAD,
+            _INST_STOREB,
+            _INST_LOADB,
+            _INST_STOREW,
+            _INST_LOADW,
+            _INST_STORED,
+            _INST_LOADD,
+
+            _INST_STORE_REG,
+            _INST_LOAD_REG,
+            _INST_STOREB_REG,
+            _INST_LOADB_REG,
+            _INST_STOREW_REG,
+            _INST_LOADW_REG,
+            _INST_STORED_REG,
+            _INST_LOADD_REG,
+            
+            _INST_ATM_STORE,
+            _INST_ATM_LOAD,
+            _INST_ATM_STOREB,
+            _INST_ATM_LOADB,
+            _INST_ATM_STOREW,
+            _INST_ATM_LOADW,
+            _INST_ATM_STORED,
+            _INST_ATM_LOADD,
+            
+            _INST_EXCG,
+            _INST_EXCG8,
+            _INST_EXCG16,
+            _INST_EXCG32,
+            _INST_LOOP,
+            _INST_INTR,
+            _INST_CMPXCHG,
+
+            _INST_HLT, // this doesn't need its own structure
         };
     };
 };
