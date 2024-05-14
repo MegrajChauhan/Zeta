@@ -1,0 +1,41 @@
+;; OBJECTIVES:
+;; Test if we get CLO
+;; Try to take in charge of the memory
+
+;; Mm1 contains the number of options
+;; Md contains the starting address
+;; Mm5 contains the address to the first free byte
+
+;; We will not print the CLOs though
+
+.text:
+proc main
+
+main:
+   store _clo_len_, Mm1
+   store clo_addr, Md
+   store _mem_start_, Mm5
+
+   ;; print them
+   outq Mm1
+   load Ma, clo_addr
+   outq Ma
+
+   loadb Me, clo_addr
+   cout Me
+ 
+   mov Mb, _mem_start_
+   outq Mb 
+
+   mov Ma, 10
+   cout Ma
+
+
+   mov Ma, 0
+   
+   hlt
+
+.data:
+_mem_start_: dq 0 ;; to store the starting address of the first free byte[Use for memory management]
+_clo_len_: db 0 ;; get the number of clo we got
+clo_addr: dq 0 ;; for storing the starting address of the CLOs

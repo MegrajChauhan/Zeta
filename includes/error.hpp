@@ -58,7 +58,7 @@
 #define _CCODE_BOLD "\033[1m"
 
 #define ERROR "ERROR"
-#define NOTE "NOTE"
+#define WARNING "WARNING"
 
 namespace zeta
 {
@@ -84,6 +84,21 @@ namespace zeta
             // parse error,
             _PARSE_ERROR_,
 
+            // sema error
+            _NO_PROC_DEFN_,      // FATAL
+            _NO_MAIN_DEFN_,      // FATAL
+            _VAR_REDFIN_,        // FATAL
+            _LABEL_REDFIN_,      // FATAL
+            _PROC_REDFIN_,       // FATAL
+            _PROC_REDECLR_,      // FATAL
+            _IDEN_DOESNT_EXIST_, // FATAL
+            // In case of floating point instructions, the immediates and variables used must be of floating-point type
+            // But in case of other instruction, using different type will result in a warning
+            _TYPE_DIFF_,          // FATAL[For eg: movf uses a byte type]
+            _TYPE_MISMATCH_,      // WARNING[For eg: movb uses a qword type]
+            _LABEL_DOESNT_EXIST_, // FATAL
+            _PROC_DOESNT_EXIST_,  // FATAL
+            _INVALID_JMP_,        // FATAL
         };
 
         struct Error

@@ -74,7 +74,7 @@ namespace zeta
             // While lexing, the lexer continues lexing to pinpoint every error.
             // In case of parsing, the successful assembling of the entire input depends on the successful parsing of every token
             // Hence, one error indicates that further parsing is pointless as any token being parsed in the future may be dependent on the successful parsing of current token.
-            void parse();
+            error::_STATES_ parse();
 
             void send_errors(std::string msg)
             {

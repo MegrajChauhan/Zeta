@@ -335,3 +335,13 @@ void zeta::lexer::Lexer::_register_parser_error_(std::string msg, std::string to
         col -= tok.length();
     _add_error_(error::_PARSE_ERROR_, msg);
 }
+
+void zeta::lexer::Lexer::_register_sema_error_(size_t line, std::string msg, error::_STATES_ s)
+{
+    // Unlike the parser, the Sema cannot provide enough information to exactly pinpoint the error in a line.
+    // To compensate for this, sema will provide very informative error messages and highlight the entire line.
+    col = 0;
+    iter = file_contents.begin() + line;
+    this->line = line;
+    _add_error_(s, msg);
+}

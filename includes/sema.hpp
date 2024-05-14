@@ -32,12 +32,45 @@
 #include <string>
 #include <unordered_map>
 
+// Unlike parser and like lexer, Sema will go through every
+#define _set_() state = error::_ERR_
+
 namespace zeta
 {
     namespace sema
     {
         class Sema
         {
+            std::vector<std::unique_ptr<nodes::Node>> nodes;      // the parsed nodes
+            std::vector<std::unique_ptr<nodes::Node>> inst_nodes; // the instruction nodes
+            symtable::SymTable symtable;                          // the symbol table
+            lexer::Lexer &_l;
+            size_t main_proc_index = 0;
+            error::_STATES_ state = error::_NORMAL_;
+
+        public:
+            Sema(lexer::Lexer &l, parser::Parser &p) : _l(l)
+            {
+                p.move_nodes(nodes);
+            }
+
+            error::_STATES_ analyse();
+
+            void gen_symtable();
+
+            void validate_symbols();
+
+            void pass_nodes(std::vector<std::unique_ptr<nodes::Node>> &dest)
+            {
+                dest = std::move(inst_nodes);
+            }
+
+            auto get_symtable() { return symtable; }
+
+            // this makes sure that all the procedures have been defined
+            void check_proc_declr();
+
+            size_t get_main_declr_pos() { return main_proc_index; }
         };
     };
 };

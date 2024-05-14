@@ -5,7 +5,7 @@ void zeta::parser::Parser::move_nodes(std::vector<std::unique_ptr<nodes::Node>> 
     dest = std::move(nodes);
 }
 
-void zeta::parser::Parser::parse()
+zeta::error::_STATES_ zeta::parser::Parser::parse()
 {
     while (curr_tok.type != tokens::_TT_ERR && !err && curr_tok.type != tokens::_TT_EOF)
     {
@@ -49,6 +49,9 @@ void zeta::parser::Parser::parse()
         std::cerr << "Parse Error: The input contains no text section which is not allowed." << std::endl;
         exit(EXIT_FAILURE);
     }
+    if (err)
+        return error::_ERR_;
+    return error::_NORMAL_;
 }
 
 void zeta::parser::Parser::parseTextSection()
@@ -645,6 +648,47 @@ void zeta::parser::Parser::handle_inst_storeX()
                                                                                               : nodes::_INST_STOREW;
         ptr = std::make_unique<nodes::NodeStore>();
         auto temp = (nodes::NodeStore *)ptr.get();
+        temp->dest = src;
+        temp->var_name = curr_tok.value;
+    }
+    nodes.push_back(std::make_unique<nodes::Node>(nodes::_TYPE_INST, k, std::move(ptr), lexer.get_current_line_no()));
+}
+
+void zeta::parser::Parser::handle_inst_load()
+{
+    // exactly same method as store
+    next_token();
+    std::unique_ptr<nodes::Base> ptr;
+    nodes::Registers src;
+    nodes::NodeKind k;
+    auto regr = nodes::_regr_iden_map.find(curr_tok.value);
+    if ((regr) == nodes::_regr_iden_map.end())
+    {
+        send_errors("Expected a register here as the source.");
+        return;
+    }
+    src = regr->second;
+    next_token();
+    // now we need a variable name or a register
+    if (curr_tok.type != tokens::_TT_IDENTIFIER)
+    {
+        send_errors("Expected a label after to store the source.");
+        return;
+    }
+    regr = nodes::_regr_iden_map.find(curr_tok.value);
+    if (regr != nodes::_regr_iden_map.end())
+    {
+        k = nodes::_INST_LOAD_REG;
+        ptr = std::make_unique<nodes::NodeLoadReg>();
+        auto temp = (nodes::NodeLoadReg *)ptr.get();
+        temp->dest = src;
+        temp->addr_regr = regr->second;
+    }
+    else
+    {
+        k = nodes::_INST_STORE;
+        ptr = std::make_unique<nodes::NodeLoad>();
+        auto temp = (nodes::NodeLoad *)ptr.get();
         temp->dest = src;
         temp->var_name = curr_tok.value;
     }

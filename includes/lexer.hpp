@@ -97,6 +97,8 @@ namespace zeta
 
             void _register_parser_error_(std::string, std::string);
 
+            void _register_sema_error_(size_t, std::string, error::_STATES_);
+
             size_t get_current_line_no() { return line; }
         };
     };

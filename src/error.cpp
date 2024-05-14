@@ -95,6 +95,13 @@ void zeta::error::_handle_all_errors_()
             any_fatal = true; // every parsing error is fatal
             _err_(_e, _e.error_msg, ERROR);
             break;
+        case _TYPE_MISMATCH_:
+            _err_(_e, _e.error_msg, WARNING);
+            break;
+        default:
+            any_fatal = true;
+            _err_(_e, _e.error_msg, ERROR);
+            break;
         }
     }
     if (any_fatal)
