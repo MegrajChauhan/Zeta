@@ -35,12 +35,16 @@ namespace zeta
             std::vector<std::string>::iterator iter;
             std::string::iterator it;
             std::unordered_map<std::string, prep::_FDetails_> &dets;
+            std::unordered_map<std::string, std::string> inc_tree;
+            std::string _base_file_name_;
 
         public:
             Lexer(std::vector<std::string> &file_conts, std::unordered_map<std::string, prep::_FDetails_> &_d) : file_contents(file_conts), dets(_d)
             {
                 iter = file_contents.begin();
                 it = iter->begin();
+                inc_tree = error::_get_inc_tree_();
+                _base_file_name_ = error::_get_base_file_();
             }
 
             void consume();
@@ -60,6 +64,12 @@ namespace zeta
             std::string get_string();
 
             Token next_token();
+
+            std::pair<std::string, prep::_FDetails_> get_file(); // get the file name based on the current line number
+
+            void _add_error_(error::_STATES_,std::string);
+
+            size_t get_base_file_line_no();
         };
     };
 };

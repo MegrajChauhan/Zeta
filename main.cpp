@@ -40,4 +40,5 @@ int main()
         std::cout << tok.type << " " << tok.value << "\n";
         tok = l.next_token();
     }
+    error::_handle_all_errors_();
 }

@@ -4,4 +4,4 @@ proc _a
 proc _b
 proc _c
 
-;; use 
+use test.zasm

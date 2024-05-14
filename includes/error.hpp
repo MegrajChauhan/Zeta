@@ -5,15 +5,12 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
+#include <unordered_map>
 #include "../utils/config.hpp"
 
 // During each step, we will print every error encountered
 // If a fatal error was discovered, we will not continue to the next step
 
-namespace zeta
-{
-    namespace error
-    {
 #define _CCODE_RESET "\033[0m"
 #define _CCODE_BLACK "\033[30m"
 #define _CCODE_RED "\033[31m"
@@ -36,6 +33,14 @@ namespace zeta
 #define _CCODE_UNDERLINE "\033[4m"
 #define _CCODE_BOLD "\033[1m"
 
+#define ERROR "ERROR"
+#define NOTE "NOTE"
+
+namespace zeta
+{
+    namespace error
+    {
+
         enum _STATES_
         {
             _NORMAL_,
@@ -43,12 +48,14 @@ namespace zeta
             _TRUE_, // indicator
 
             // for preprocessor
-            _READ_FAILED_,
             _FILE_INVALID_,
             _FILE_NOT_AVAI_,
             _FILE_A_DIR_,
-            _PREPROCESSING_ERR_, // contains program error
             _EXPECTED_PATH_GOT_NL_,
+
+            // for lexer
+            _INVALID_TOKEN_,
+            _STRING_NOT_TERMINATED_,
 
         };
 
@@ -68,6 +75,12 @@ namespace zeta
         LOCAL std::vector<std::string> _inc_files_; // all the included files
         LOCAL std::vector<Error> err;               // all the encountered errors
 
+        // Below here, the first member is "included file" while the second member is "included by"
+        // Since there can be multiple "included file"(s) to a single file, we will use that.
+        // We will use this to graph a proper include tree; tracing back to the main file
+        // This is a very important part for proper error handling
+        LOCAL std::unordered_map<std::string, std::string> _inc_tree_; // the inefficient method for error handling
+
         void append_file(std::string);
         void remove_file();
 
@@ -80,6 +93,12 @@ namespace zeta
         // if there are no fatal errors, return
         // else exit without returning
         void _handle_all_errors_();
+
+        std::string _get_base_file_();
+
+        void _update_inc_tree_();
+
+        std::unordered_map<std::string, std::string> _get_inc_tree_();
 
     };
 }

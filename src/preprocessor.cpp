@@ -99,6 +99,7 @@ zeta::error::_STATES_ zeta::prep::Preprocessor::process()
                             fdetails.merge(_p.fdetails);
                             line += _p.line;
                         }
+                        error::_update_inc_tree_(); // update before removing
                         error::remove_file();
                     }
                     else
