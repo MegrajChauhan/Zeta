@@ -18,8 +18,6 @@ main:
 
    ;; print them
    outq Mm1
-   load Ma, clo_addr
-   outq Ma
 
    loadb Me, clo_addr
    cout Me

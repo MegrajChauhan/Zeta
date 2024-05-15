@@ -7,6 +7,7 @@ void zeta::parser::Parser::move_nodes(std::vector<std::unique_ptr<nodes::Node>> 
 
 zeta::error::_STATES_ zeta::parser::Parser::parse()
 {
+    section = _SECTION_NONE;
     while (curr_tok.type != tokens::_TT_ERR && !err && curr_tok.type != tokens::_TT_EOF)
     {
         if (curr_tok.type == tokens::_TT_SECTION_DATA)
@@ -160,6 +161,7 @@ void zeta::parser::Parser::handle_identifier()
         break;
     }
     }
+    return;
 _txt_error:
     lexer._register_parser_error_("Defining variables in the text section is not allowed", curr_tok.value);
     set();
@@ -686,7 +688,7 @@ void zeta::parser::Parser::handle_inst_load()
     }
     else
     {
-        k = nodes::_INST_STORE;
+        k = nodes::_INST_LOAD;
         ptr = std::make_unique<nodes::NodeLoad>();
         auto temp = (nodes::NodeLoad *)ptr.get();
         temp->dest = src;

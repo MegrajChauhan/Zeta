@@ -219,6 +219,7 @@ void zeta::sema::Sema::gen_symtable()
                         _set_();
                         break;
                     }
+                    break;
                 }
                 else
                     symtable.add_entry(label->label_name, symtable::SymTableEntry(symtable::_LABEL));
@@ -248,6 +249,7 @@ void zeta::sema::Sema::gen_symtable()
             }
             }
             inst_nodes.push_back(std::move(node));
+            break;
         }
     }
 }

@@ -7,7 +7,6 @@ zeta::codegen::Codegen::Codegen(std::vector<std::unique_ptr<zeta::nodes::Node>> 
 
 zeta::codegen::Codegen::Codegen(zeta::sema::Sema &sema)
 {
-    sema.analyse();
     sema.pass_nodes(inst_nodes);
     table = sema.get_symtable();
     main_proc_ind = sema.get_main_declr_pos();
