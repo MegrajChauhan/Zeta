@@ -751,6 +751,42 @@ void zeta::sema::Sema::validate_symbols()
             }
             break;
         }
+        case nodes::NodeKind::_INST_SET_EXCP:
+        {
+            auto node = (nodes::NodeControlFlow *)inst->ptr.get();
+            auto x = symtable.find_entry(node->_jmp_label_);
+            if (!symtable.is_valid(x))
+            {
+                _l._register_sema_error_(inst->line, "The procedure " + node->_jmp_label_ + " doesn't exist.", error::_PROC_DOESNT_EXIST_);
+                _set_();
+                break;
+            }
+            if (x->second.type != symtable::SymEntryType::_PROC)
+            {
+                _l._register_sema_error_(inst->line, "SET of procedure " + node->_jmp_label_ + " is not a procedure at all.", error::_INVALID_JMP_);
+                _set_();
+                break;
+            }
+            break;
+        }
+        case nodes::NodeKind::_INST_CALL_EXCP:
+        {
+            auto node = (nodes::NodeControlFlow *)inst->ptr.get();
+            auto x = symtable.find_entry(node->_jmp_label_);
+            if (!symtable.is_valid(x))
+            {
+                _l._register_sema_error_(inst->line, "The procedure " + node->_jmp_label_ + " doesn't exist.", error::_PROC_DOESNT_EXIST_);
+                _set_();
+                break;
+            }
+            if (x->second.type != symtable::SymEntryType::_PROC)
+            {
+                _l._register_sema_error_(inst->line, "EXCEPTION CALL of procedure " + node->_jmp_label_ + " is not a procedure at all.", error::_INVALID_JMP_);
+                _set_();
+                break;
+            }
+            break;
+        }
         case nodes::NodeKind::_INST_CMP_IMM:
         {
             auto node = (nodes::NodeCmpImm *)inst->ptr.get();

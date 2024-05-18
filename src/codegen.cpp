@@ -1004,6 +1004,26 @@ void zeta::codegen::Codegen::gen()
         auto i = iter->get();
         switch (i->kind)
         {
+        case nodes::NodeKind::_INST_SET_EXCP:
+        {
+            Instruction inst;
+            auto temp = (nodes::NodeControlFlow *)i->ptr.get();
+            size_t address = label_addrs.find(temp->_jmp_label_)->second;
+            inst.bytes.b1 = opcodes::OP_SET_EXCP;
+            inst.whole |= address;
+            inst_bytes.push_back(inst);
+            break;
+        }
+        case nodes::NodeKind::_INST_CALL_EXCP:
+        {
+            Instruction inst;
+            auto temp = (nodes::NodeControlFlow *)i->ptr.get();
+            size_t address = label_addrs.find(temp->_jmp_label_)->second;
+            inst.bytes.b1 = opcodes::OP_CALL_EXCP;
+            inst.whole |= address;
+            inst_bytes.push_back(inst);
+            break;
+        }
         case nodes::NodeKind::_INST_CMPXCHG:
         {
             Instruction inst;
@@ -1048,7 +1068,7 @@ void zeta::codegen::Codegen::gen()
                                                                             : i->kind == nodes::_INST_STOREW   ? opcodes::OP_STOREW
                                                                                                                : opcodes::OP_STORED;
             inst.bytes.b2 = temp->dest;
-            inst.whole |= data_addrs.find(temp->var_name)->second;
+            inst.whole |= data_addrs[temp->var_name];
             inst_bytes.push_back(inst);
             break;
         }
@@ -1060,8 +1080,8 @@ void zeta::codegen::Codegen::gen()
             Instruction inst;
             auto temp = (nodes::NodeStore *)(*iter).get()->ptr.get();
             inst.bytes.b1 = i->kind == nodes::_INST_ATM_STORE ? opcodes::OP_ATOMIC_STORE : i->kind == nodes::_INST_ATM_STOREB ? opcodes::OP_ATOMIC_STOREB
-                                                                            : i->kind == nodes::_INST_ATM_STOREW   ? opcodes::OP_ATOMIC_STOREW
-                                                                                                               : opcodes::OP_ATOMIC_STORED;
+                                                                                       : i->kind == nodes::_INST_ATM_STOREW   ? opcodes::OP_ATOMIC_STOREW
+                                                                                                                              : opcodes::OP_ATOMIC_STORED;
             inst.bytes.b2 = temp->dest;
             inst.whole |= data_addrs.find(temp->var_name)->second;
             inst_bytes.push_back(inst);
@@ -1090,8 +1110,8 @@ void zeta::codegen::Codegen::gen()
             Instruction inst;
             auto temp = (nodes::NodeLoad *)(*iter).get()->ptr.get();
             inst.bytes.b1 = i->kind == nodes::_INST_ATM_LOAD ? opcodes::OP_ATOMIC_LOAD : i->kind == nodes::_INST_ATM_LOADB ? opcodes::OP_ATOMIC_LOADB
-                                                                          : i->kind == nodes::_INST_ATM_LOADW   ? opcodes::OP_ATOMIC_LOADW
-                                                                                                            : opcodes::OP_ATOMIC_LOADD;
+                                                                                     : i->kind == nodes::_INST_ATM_LOADW   ? opcodes::OP_ATOMIC_LOADW
+                                                                                                                           : opcodes::OP_ATOMIC_LOADD;
             inst.bytes.b2 = temp->dest;
             inst.whole |= data_addrs.find(temp->var_name)->second;
             inst_bytes.push_back(inst);

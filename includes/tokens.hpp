@@ -196,6 +196,9 @@ namespace zeta
             _TT_INST_STORED,
             _TT_INST_CMPXCHG,
 
+            _TT_INST_SET_EXCP,
+            _TT_INST_CALL_EXCP,
+
             _TT_INST_INC,
             _TT_INST_DEC,
             // we ignore commas, they are not absolutely necessary and the assembler won't even complain
@@ -426,6 +429,9 @@ namespace zeta
             _INST_LOOP,
             _INST_INTR,
             _INST_CMPXCHG,
+            
+            _INST_SET_EXCP,
+            _INST_CALL_EXCP,
 
             _INST_HLT, // this doesn't need its own structure
         };

@@ -126,7 +126,7 @@ namespace zeta
             void handle_inst_logical();
             void handle_inst_shift(std::string, nodes::NodeKind);
             void handle_inst_sva_svc();
-            
+
             void handle_inst_push();
             void handle_inst_pop();
             void handle_inst_lea();
@@ -134,6 +134,9 @@ namespace zeta
             void handle_inst_excgX();
             void handle_inst_intr();
             void handle_inst_cmpxchg();
+
+            void handle_set_excp();
+            void handle_ecall();
         };
     };
 };

@@ -12,15 +12,23 @@
 proc main
 
 main:
-   store _clo_len_, Mm1
-   store clo_addr, Md
-   store _mem_start_, Mm5
+   store Mm1, _clo_len_
+   store Md, clo_addr
+   store Mm5, _mem_start_
+
+   mov Ma, 10
 
    ;; print them
    outq Mm1
-
-   loadb Me, clo_addr
+   cout Ma
+   
+   loadb Me, Md
    cout Me
+   cout Ma
+   
+   mov Mb, clo_addr
+   outq Mb
+   cout Ma
  
    mov Mb, _mem_start_
    outq Mb 
@@ -28,9 +36,8 @@ main:
    mov Ma, 10
    cout Ma
 
-
    mov Ma, 0
-   
+
    hlt
 
 .data:

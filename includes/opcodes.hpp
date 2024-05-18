@@ -231,6 +231,8 @@ namespace zeta
             OP_CMP_IMM_MEMQ,
             // ------------------------ DONE
 
+            OP_SET_EXCP,
+            OP_CALL_EXCP,
         };
     };
 };

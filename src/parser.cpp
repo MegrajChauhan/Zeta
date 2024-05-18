@@ -364,6 +364,12 @@ void zeta::parser::Parser::handleInstruction()
     case tokens::_TT_INST_JMP:
         handle_inst_jmpcall(nodes::_INST_JMP);
         break;
+    case tokens::_TT_INST_SET_EXCP:
+        handle_inst_jmpcall(nodes::_INST_SET_EXCP);
+        break;
+    case tokens::_TT_INST_CALL_EXCP:
+        handle_inst_jmpcall(nodes::_INST_CALL_EXCP);
+        break;
     case tokens::_TT_INST_CMP:
         handle_inst_cmp();
         break;
@@ -622,18 +628,19 @@ void zeta::parser::Parser::handle_inst_storeX()
     std::unique_ptr<nodes::Base> ptr;
     nodes::Registers src;
     nodes::NodeKind k;
+    auto regr = nodes::_regr_iden_map.find(curr_tok.value);
+    if ((regr) == nodes::_regr_iden_map.end())
+    {
+        send_errors("Expected a register here as the source.");
+        return;
+    }
+    src = regr->second;
+    next_token();
     if (curr_tok.type != tokens::_TT_IDENTIFIER)
     {
         send_errors("Expected a label after to store the source.");
         return;
     }
-    next_token();
-    auto regr = nodes::_regr_iden_map.find(curr_tok.value);
-    if ((regr) == nodes::_regr_iden_map.end())
-    {
-        send_errors("Expected a register here as the source.");
-    }
-    src = regr->second;
     regr = nodes::_regr_iden_map.find(curr_tok.value);
     if (regr != nodes::_regr_iden_map.end())
     {
@@ -705,13 +712,6 @@ void zeta::parser::Parser::handle_inst_store()
     std::unique_ptr<nodes::Base> ptr;
     nodes::Registers src;
     nodes::NodeKind k;
-    // now we need a variable name or a register
-    if (curr_tok.type != tokens::_TT_IDENTIFIER)
-    {
-        send_errors("Expected a label after to store the source.");
-        return;
-    }
-    next_token();
     auto regr = nodes::_regr_iden_map.find(curr_tok.value);
     if ((regr) == nodes::_regr_iden_map.end())
     {
@@ -719,6 +719,12 @@ void zeta::parser::Parser::handle_inst_store()
         return;
     }
     src = regr->second;
+    next_token();
+    if (curr_tok.type != tokens::_TT_IDENTIFIER)
+    {
+        send_errors("Expected a label after to store the source.");
+        return;
+    }
     regr = nodes::_regr_iden_map.find(curr_tok.value);
     if (regr != nodes::_regr_iden_map.end())
     {

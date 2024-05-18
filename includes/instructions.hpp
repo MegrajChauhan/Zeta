@@ -165,6 +165,8 @@ namespace zeta
             {"stored", _TT_INST_STORED},
             {"loadd", _TT_INST_LOADD},
             {"cmpxchg", _TT_INST_CMPXCHG},
+            {"ecall", _TT_INST_CALL_EXCP},
+            {"set", _TT_INST_SET_EXCP},
     };
 };
 
