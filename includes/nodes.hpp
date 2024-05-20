@@ -80,6 +80,12 @@ namespace zeta
             virtual ~Base() {} // Make the base class polymorphic with a virtual destructor
         };
 
+        struct NodeOneRegrOneImm: public Base
+        {
+            Registers regr;
+            std::string imm;
+        };
+
         struct NodeCmpRegr : public Base
         {
             Registers regr1; // the first operand register

@@ -1,0 +1,310 @@
+SYNTAX:
+use path_to_include
+
+.text:
+;; This is a comment
+;; Write instructions here in text section
+proc main ;; procedure declaration
+
+main:
+  ;; procedure definition
+  ;; ...instructions
+
+.data:
+abc: db 12
+;; we also have dw, dd and dq
+pqr: .string "Hello ". ;; using the '.' here concatanates the two strings together
+             " These are attached"
+xyz: .resb 12 ;; reserve 12 bytes, we also have resw, resd, resq
+
+All registers:
+Ma, Mb, Mc, Md, Me, Mf, M1, M2, M3, M4, M5, Mm1, Mm2, Mm3, Mm4, Mm5
+
+This file contains every possible instruction. Those who are familiar with assembly will instantly understand.
+For those, who do not know assembly, there will be details in Wiki soon.
+
+nop
+hlt
+
+ATOMIC LOAD AND STORE INSTRUCTIONS
+atm load Regr, Variable
+atm loadb Regr, Variable
+atm loadw Regr, Variable
+atm loadd Regr, Variable
+atm store Regr, Variable
+atm storeb Regr, Variable
+atm storew Regr, Variable
+atm stored Regr, Variable
+
+NON-ATOMIC LOAD AND STORE INSTRUCTIONS
+load Regr, Variable
+load Regr, Regr
+loadb Regr, Variable
+loadb Regr, Regr
+loadw Regr, Variable
+loadw Regr, Regr
+loadd Regr, Variable
+loadd Regr, Regr
+store Regr, Variable
+store Regr, Regr
+storeb Regr, Variable
+storeb Regr, Regr
+storew Regr, Variable
+storew Regr, Regr
+stored Regr, Variable
+stored Regr, Regr
+
+MOVING DATA AROUND
+mov Regr, Variable - Translated to corresponsing load instruction
+mov Regr, Regr
+mov Regr, immediate
+movq Regr, Variable - Translated to load instruction
+movq Regr, immediate
+movb Regr, Regr
+movw Regr, Regr
+movd Regr, Regr
+movb Regr, immediate - Translated to mov regr, immediate
+movw Regr, immediate - Translated to mov regr, immediate
+movd Regr, immediate - Translated to mov regr, immediate
+movb Regr, Variable - Translated to loadb regr, immediate
+movw Regr, Variable - Translated to loadw regr, immediate
+movd Regr, Variable - Translated to loadd regr, immediate
+movsxb Regr, immediate
+movsxb Regr, Regr
+movsxb Regr, Variable - Translated to two instructions, first is loadb followed by movsxb Regr, Regr
+movsxw Regr, immediate
+movsxw Regr, Regr
+movsxw Regr, Variable - Translated to two instructions, first is loadw followed by movsxw Regr, Regr
+movsxd Regr, immediate
+movsxd Regr, Regr
+movsxd Regr, Variable - Translated to two instructions, first is loadd followed by movsxd Regr, Regr
+
+[moveX instructions are just mov instructions but except for the bytes being moved, other bytes are not affected]
+moveb Regr, Regr
+movew Regr, Regr
+moved Regr, Regr
+
+MOVING FLOATING POINT VALUES AREOUND
+movf Regr, Variable - essentially Translated to loadd
+movf Regr, immediate - essentially converted to movd
+movlf Regr, Variable - essentially Translated to load
+movlf Regr, immediate - essentially converted to movq
+
+GETTING INPUT AND GIVING OUTPUT
+sin Variable
+sout Variable
+cin Regr
+cout Regr
+in Regr
+out Regr
+inw Regr
+outw Regr
+ind Regr
+outd Regr
+inq Regr
+outq Regr
+uin Regr
+uout Regr
+uinw Regr
+uoutw Regr
+uind Regr
+uoutd Regr
+uinq Regr
+uoutq Regr
+inf Regr
+outf Regr
+inlf Regr
+outlf Regr
+outr
+uoutr
+
+ARITHMETIC INSTRUCTIONS
+add Regr, immediate
+add Regr, Variable
+add Regr, Regr
+sub Regr, immediate
+sub Regr, Variable
+sub Regr, Regr
+mul Regr, immediate
+mul Regr, Variable
+mul Regr, Regr
+div Regr, immediate
+div Regr, Variable
+div Regr, Regr
+mod Regr, immediate
+mod Regr, Variable
+mod Regr, Regr
+
+SIGNED ARITHMETIC INSTRUCTIONS
+iadd Regr, immediate
+iadd Regr, Variable
+iadd Regr, Regr
+isub Regr, immediate
+isub Regr, Variable
+isub Regr, Regr
+imul Regr, immediate
+imul Regr, Variable
+imul Regr, Regr
+idiv Regr, immediate
+idiv Regr, Variable
+idiv Regr, Regr
+imod Regr, immediate
+imod Regr, Variable
+imod Regr, Regr
+
+FLOATING POINT ARITHMETIC INSTRUCTIONS
+addf Regr, Variable
+addf Regr, Regr
+subf Regr, Variable
+subf Regr, Regr
+mulf Regr, Variable
+mulf Regr, Regr
+divf Regr, Variable
+divf Regr, Regr
+addlf Regr, Variable
+addlf Regr, Regr
+sublf Regr, Variable
+sublf Regr, Regr
+mullf Regr, Variable
+mullf Regr, Regr
+divlf Regr, Variable
+divlf Regr, Regr
+
+CONTROL FLOW INSTRUCTIONS
+jmp label
+call label
+ret
+set label
+ecall
+loop label
+cmp Regr, immediate
+cmp Regr, Variable
+cmp Regr, Regr
+jnz label - jmp not zero
+jz label
+jne label - jmp not equal
+je label
+jnc label - jmp not carry
+jc label
+jno label - jmp not overflow
+jo label
+jnn label - jmp not negative
+jn label
+jng label - jmp not greater
+jg label
+jns label - jmp not smaller
+js label
+jge label - jmp greater or equal
+jse label - jmp smaller or equal
+
+LOGICAL INSTRUCTIONS
+inc Regr
+dec Regr
+and Regr, Regr
+and Regr, immediate
+or Regr, Regr
+or Regr, immediate
+xor Regr, Regr
+xor Regr, immediate
+lshift Regr, immediate - immediate from 0 to 63
+rshift Regr, immediate - immediate from 0 to 63
+not Regr - flip the bits
+
+STACK RELATED INSTRUCTIONS
+sva Regr, offset
+svc Regr, offset
+push immediate
+push Regr
+pop Regr
+pusha
+popa
+
+EXTRA INSTRUCTIONS
+lea Dest, Base, Index, Scale - All of these are registers and not variables or immediates
+[lea basically does - Dest = Base + Index * Scale]
+
+intr Interrupt number
+cmpxchg Regr Regr1 Variable
+[
+    basically:
+    if Regr != Variable
+      return;
+    Variable = Regr1
+    done
+]
+reset - Reset all registers to 0
+cflags - clear flags
+clc -> clear carry flag
+cln
+clo
+clz
+
+DATA EXCHANGE INSTRUCTIONS
+excg Regr, Regr
+excgb Regr, Regr
+excgw Regr, Regr
+excgd Regr, Regr
+
+POSSIBLE VALUES FOR INTERRUPTS AND CONVENTIONS
+Interrupts from 0 to 150 are reserved for internal use and so Interrupt number starts from 151 for usable services.
+
+151 - HALT REQUEST
+    - The core that made this request will be terminated.
+152 - EXIT REQUEST
+    - The VM will exit and all cores will be terminated
+153 - INITIALIZE NEW CORE
+    - Creates a new core that runs simultaneously with other cores
+    - Ma register of the requesting core contains the address from which the new core should start executing from
+    - If core creation fails, the Ma register of the requesting core will contain 1
+154 - DYNAMICALLY LOAD A LIBRARY
+    - Dynamically loads a library for use.
+    - Ma register of the requesting core must contain the starting address of the string that gives the name of the library.
+    - Full path is necessary.
+    - Mb register of the requesting core is provided with a handle[Do not mess with it]
+    - Failure to open will result in termination of VM.
+155 - UNLOAD A LOADED LIBRARY
+    - Mb of the requesting core must contain the handle.
+156 - CALL A FUNCTION FROM THE DYNAMICALLY LOADED LIBRARY
+    - The parameters for the function must be in the memory. The address to that parameter must be in Mc.
+    - Ma must contain the starting address of the string that gives the name of the function.
+    - Mb must contain the handle.
+    - The called function receives it's parameters as a C (void*). It may keep on adding to access to it to it's variables itself.
+    - The called function has the power to destroy the entire data memory so use trusted libraries only.
+157 - OPEN A FILE 
+    - the address to the filename should be in Ma
+    - the file opening mode should be in the lower 3 bits of the Mb register
+    - the handle will be returned in the Mb register and the return value in the Ma register[DO NOT MESS WITH IT]
+    - the VM won't exit on open failure
+    - Value of lower 3-bits of Mb:0 = "r", 1 = "r+", 2 = "w", 3 = "w+", 4 = "a", 5 = "a+", 6 = "rb", 7 = "wb"
+158 - CLOSE A OPENED FILE
+    - Mb must contain the handle to the file.
+159 - READ FROM A FILE
+    - handle in Mb register
+    - The address to store the read contents should be in the Ma register
+    - The number of bytes to read should be in the Mc register
+    - The number of bytes read will be in the Ma register
+160 - WRITE TO A FILE
+    - handle in Mb register
+    - The address to content to write should be in the Ma register
+    - The number of bytes to write should be in the Mc register
+    - The number of bytes written will be in the Ma register
+161 - CHECK FOR END OF FILE
+    - handle in Mb
+    - 0 in Ma for eof else nonzero value
+162 - SEEK A FILE
+    - Mb contains the handle
+    - Ma will contain the return value, 0 for success
+    - Mc contains the offset from which to seek
+    - Md contains the offset to which to seek
+163 - KNOW THE CURRENT OFFSET FROM THE BEGINNING
+    - Mb contains the handle
+    - Ma contains the offset
+164 - REWIND THE FILE TO THE BEGINNING
+    - Mb contains the handle
+NOTE: We also need a way to know the error that occured while opening the file such as 'EISDIR". For this we need to access the errno value.
+      This is not that hard and so we will do it later.
+165 - GET NEW MEMORY PAGE FROM OS
+    - each time this request is made, a new page is allocated
+    - the starting address of the new page will be returned in Mb register
+    - if failed, Ma will contain 1 else 0
+

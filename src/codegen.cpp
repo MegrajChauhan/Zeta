@@ -165,6 +165,8 @@ void zeta::codegen::Codegen::gen_data()
                     data_bytes.push_back(c);
                     str_start_len++;
                 }
+                data_bytes.push_back(0);
+                str_start_len++;
             }
             break;
         }
@@ -986,8 +988,9 @@ void zeta::codegen::Codegen::gen_inst_cmp(std::unique_ptr<nodes::Node> &node)
 void zeta::codegen::Codegen::gen_inst_sva_svc(std::unique_ptr<nodes::Node> &node)
 {
     Instruction inst;
-    auto x = (nodes::NodeOneImmOperand *)node->ptr.get();
+    auto x = (nodes::NodeOneRegrOneImm *)node->ptr.get();
     inst.bytes.b1 = node->kind == nodes::_INST_SVA ? opcodes::OP_SVA : opcodes::OP_SVC;
+    inst.bytes.b2 = x->regr;
     inst.whole |= std::stoi(x->imm);
     inst_bytes.push_back(inst);
 }
@@ -1017,10 +1020,7 @@ void zeta::codegen::Codegen::gen()
         case nodes::NodeKind::_INST_CALL_EXCP:
         {
             Instruction inst;
-            auto temp = (nodes::NodeControlFlow *)i->ptr.get();
-            size_t address = label_addrs.find(temp->_jmp_label_)->second;
             inst.bytes.b1 = opcodes::OP_CALL_EXCP;
-            inst.whole |= address;
             inst_bytes.push_back(inst);
             break;
         }

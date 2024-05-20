@@ -368,7 +368,7 @@ void zeta::parser::Parser::handleInstruction()
         handle_inst_jmpcall(nodes::_INST_SET_EXCP);
         break;
     case tokens::_TT_INST_CALL_EXCP:
-        handle_inst_jmpcall(nodes::_INST_CALL_EXCP);
+        nodes.push_back(std::make_unique<nodes::Node>(nodes::_TYPE_INST, nodes::_INST_CALL_EXCP, std::make_unique<nodes::Base>()));
         break;
     case tokens::_TT_INST_CMP:
         handle_inst_cmp();
@@ -771,7 +771,7 @@ void zeta::parser::Parser::handle_inst_mov()
         if (iden2 == nodes::_regr_iden_map.end())
         {
             // it is a variable name
-            kind = nodes::NodeKind::_INST_MOV_REG_IMM;
+            kind = is_q ? nodes::NodeKind::_INST_MOV_REG_IMMQ : nodes::NodeKind::_INST_MOV_REG_IMM;
             ptr = std::make_unique<nodes::NodeInstMovRegImm>();
             auto temp = (nodes::NodeInstMovRegImm *)ptr.get();
             temp->is_iden = true;
@@ -792,7 +792,7 @@ void zeta::parser::Parser::handle_inst_mov()
     {
         // then we have an immediate here
         // in future based on the size of the number, we could encode mov64 instruction
-        kind = nodes::NodeKind::_INST_MOV_REG_IMM;
+        kind = is_q ? nodes::NodeKind::_INST_MOV_REG_IMMQ : nodes::NodeKind::_INST_MOV_REG_IMM;
         ptr = std::make_unique<nodes::NodeInstMovRegImm>();
         auto temp = (nodes::NodeInstMovRegImm *)ptr.get();
         temp->dest_regr = regr->second;
@@ -803,7 +803,6 @@ void zeta::parser::Parser::handle_inst_mov()
         send_errors("Expected an immediate value, register or a variable name.");
         return;
     }
-    kind = is_q ? nodes::NodeKind::_INST_MOV_REG_IMMQ : kind;
     nodes.push_back(std::make_unique<zeta::nodes::Node>(nodes::_TYPE_INST, kind, std::move(ptr), lexer.get_current_line_no()));
 }
 
@@ -1504,6 +1503,13 @@ void zeta::parser::Parser::handle_inst_sva_svc()
 {
     auto temp = curr_tok;
     next_token();
+    auto res = nodes::_regr_iden_map.find(curr_tok.value);
+    if (res == nodes::_regr_iden_map.end())
+    {
+        send_errors("SVA and SVC expects a register as the first operand");
+        return;
+    }
+    next_token();
     // These both instructions only take +ve values
     if (curr_tok.type != tokens::_TT_INT)
     {
@@ -1511,8 +1517,10 @@ void zeta::parser::Parser::handle_inst_sva_svc()
         return;
     }
     std::unique_ptr<nodes::Base> ptr;
-    ptr = std::make_unique<nodes::NodeOneImmOperand>();
-    ((nodes::NodeOneImmOperand *)ptr.get())->imm = curr_tok.value;
+    ptr = std::make_unique<nodes::NodeOneRegrOneImm>();
+    auto tmp = (nodes::NodeOneRegrOneImm *)ptr.get();
+    tmp->imm = curr_tok.value;
+    tmp->regr = res->second;
     nodes.push_back(std::make_unique<nodes::Node>(nodes::_TYPE_INST, (temp.type == tokens::_TT_INST_SVA) ? nodes::_INST_SVA : nodes::_INST_SVC, std::move(ptr)));
 }
 

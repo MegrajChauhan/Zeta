@@ -1,0 +1,44 @@
+load Regr, Variable -> loads the Variable from memory into the register
+                    -> The same for all loadX and atm load and atm loadX
+load Regr, Regr -> In this case the address to load is in the second register
+                -> applies to all loadX
+store Regr, Variable -> Store whatever is in the register into the Variable
+                     -> The same for all storeX, atm store and atm storeX
+store Regr, Regr -> In this case the address to store to is in the second register
+                 -> The same for all storeX
+mov|movq|movX Regr, Variable -> Translated to the corresponsing load instruction at codegen time.
+
+mov Regr, Regr -> Move the value from source(second register) to destination(first register).
+
+mov Regr, immediate -> Move the immediate into the register(32-bit immediates)
+movq Regr, immediate -> Move 64-bit immediates
+movX Regr, Regr -> Move the corresponsing number of bytes from source to destination.
+moveX Regr, Regr -> What this basically does is takes the corresponsing number of bytes from the source
+                    and moves it into the destination but the other bytes of the destination register is not changed.
+sin Variable -> The number of characters to read should be in Mc register. The read string is stored to variable.
+sout Variable -> The number of characters from Variable to print should be in Mc register.
+cin Regr -> Reads just one character into Regr
+cout Regr -> prints the character from the given Regr
+
+inX Regr -> Reads the corresponsing number of bytes(as signed numbers) into the register
+outX Regr -> Prints the corresponsing number of bytes(as signed numbers) from the register
+uinX Regr -> Reads the corresponsing number of bytes(as unsigned numbers) into the register
+outX Regr -> Prints the corresponsing number of bytes(as unsigned numbers) from the register
+outr -> Prints the value of all registers as signed integers.
+uoutr -> Prints the value of all registers as unsigned integers.
+
+add|sub|mul|div|mod|iadd|isub|imul|idiv|imod Regr, immediate -> do the corresponsing arithmetic of immediate with whatever is in the register
+Same logic applies for floats and in case of variables, just add that variable.
+
+set label -> Sets the said procedure as the "Exception" procedure
+ecall -> Call that set procedure
+loop label -> Keep jumping to label until Mc becomes 0
+
+sva Regr, offset -> Stack Variable Access: Add offset to current SP and get the value at that place into the register
+svc Regr, offset -> Stack Variable Change: Add offset to current SP and put the value of Regr to that place.
+
+excgX Regr1, Regr2 -> Put the corresponsing number of bytes from Regr1 into Regr2 and vice versa without affecting other bytes.
+
+Notes:
+When a value is pushed, the current BP is saved onto the stack and BP points to that location.
+The opposite happens when popping.
