@@ -1314,13 +1314,26 @@ void zeta::parser::Parser::handle_inst_cmp()
     // now the next token can be either an immediate, variable or a register
     std::unique_ptr<nodes::Base> node;
     nodes::NodeKind kind = nodes::_INST_CMP_IMM;
-    if (curr_tok.type == tokens::_TT_INT || curr_tok.type == tokens::_TT_NINT || curr_tok.type == tokens::_TT_FLOAT || curr_tok.type == tokens::_TT_NFLOAT)
+    if (curr_tok.type == tokens::_TT_INT || curr_tok.type == tokens::_TT_NINT || curr_tok.type == tokens::_TT_FLOAT || curr_tok.type == tokens::_TT_NFLOAT || curr_tok.type == tokens::_TT_STRING)
     {
-        // we have an immediate
+        // we have an immediate or a character
         node = std::make_unique<nodes::NodeCmpImm>();
         auto temp = (nodes::NodeCmpImm *)node.get();
+        if (curr_tok.type == tokens::_TT_STRING)
+        {
+            if (curr_tok.value.length() == 1)
+            {
+                temp->val = std::to_string((int)(curr_tok.value[0]));
+            }
+            else
+            {
+                send_errors("We cannot have an entire string to compare here.");
+                return;
+            }
+        }
+        else
+            temp->val = curr_tok.value;
         temp->regr = regr->second;
-        temp->val = curr_tok.value;
     }
     else if (curr_tok.type == tokens::_TT_IDENTIFIER)
     {

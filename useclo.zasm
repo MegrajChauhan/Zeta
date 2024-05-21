@@ -38,6 +38,8 @@ main:
 
    mov Ma, 0
 
+   cmp Ma, 'a'
+
    hlt
 
 .data:

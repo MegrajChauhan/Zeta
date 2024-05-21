@@ -113,6 +113,20 @@ std::string zeta::lexer::Lexer::get_string()
     char starting_quote = *it;
     std::string string;
     consume();
+    if (*it == '\'')
+    {
+        // For reasons, we need this to hold only one character
+        string += *it;
+        consume();
+        if (*it != '\'')
+        {
+            col -= 1;
+            _add_error_(error::_STRING_NOT_TERMINATED_, "The string was never terminated.");
+            return "";
+        }
+        consume();
+        return string;
+    }
     while (*it != starting_quote && it != iter->end())
     {
         if (*it == '\\')
@@ -122,6 +136,7 @@ std::string zeta::lexer::Lexer::get_string()
             {
                 col -= string.length();
                 _add_error_(error::_STRING_NOT_TERMINATED_, "The string was never terminated.");
+                return "";
             }
             switch (*it)
             {
@@ -166,6 +181,7 @@ std::string zeta::lexer::Lexer::get_string()
         // The error handling in this case is very tough
         // And so we will just avoid highlighting
         _add_error_(error::_STRING_NOT_TERMINATED_, "The string was never terminated.");
+        return "";
     }
     return string;
 }
@@ -222,6 +238,7 @@ zeta::lexer::Token zeta::lexer::Lexer::next_token()
         // get the string
         token.type = _TT_STRING;
         token.value = get_string();
+        token.type = (token.value.length() == 0) ? tokens::_TT_ERR : token.type;
     }
     else
     {
@@ -256,9 +273,9 @@ std::pair<std::string, zeta::prep::_FDetails_> zeta::lexer::Lexer::get_file()
     // What about knowing the include tree? While preprocessing it was easier but while lexing, it isn't that simple.
     // But I have a solution which, obviously, doesn't scale with the size of the input.
     // With just a few(say two Dozen) files(included), it would probably takes 10-20 seconds.
-    // Now take big projects with hundreds of files included, it would probably take a few minutes which is not what anyone wants.
+    // Now take big projects with hundreds of files included, it would probably take a few dozen minutes which is not what anyone wants.
     // Can we do anything about that? Absolutely!
-    // Will I do it? Maybe. It will be worth it only if the assembler is actually used.
+    // Will I do it? Maybe. It will be worth it only if the assembler is actually used(But I will have rewrite the assembler from scratch employing an even better technique).
     return _ret;
 }
 

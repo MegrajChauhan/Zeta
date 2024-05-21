@@ -387,7 +387,7 @@ void zeta::codegen::Codegen::label_labels()
         }
         else if (x->kind == nodes::NodeKind::_INST_MOVF || x->kind == nodes::NodeKind::_INST_MOVLF)
         {
-            if (((nodes::NodeInstMovRegImm *)x->ptr.get())->is_iden)
+            if (((nodes::NodeInstMovRegImm *)x->ptr.get())->is_iden && x->kind == nodes::NodeKind::_INST_MOVLF)
                 i += 2;
         }
         else if (x->kind == nodes::NodeKind::_INST_CMP_IMM)
@@ -944,6 +944,7 @@ void zeta::codegen::Codegen::gen_inst_cmp(std::unique_ptr<nodes::Node> &node)
         {
             inst.bytes.b1 = opcodes::OP_CMP_IMM;
             inst_bytes.push_back(inst);
+            inst.whole = 0;
             inst.whole = std::stoll(x->val);
         }
         else
