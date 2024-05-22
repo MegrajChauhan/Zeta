@@ -37,6 +37,10 @@ zeta::error::_STATES_ zeta::parser::Parser::parse()
         {
             handle_atm_insts();
         }
+        else if (curr_tok.type == tokens::_TT_KEY_ADDR)
+        {
+            handle_addr_insts();
+        }
         else if (curr_tok.type >= tokens::_TT_INST_NOP && curr_tok.type <= tokens::_TT_INST_DEC)
             handleInstruction();
         else
@@ -148,6 +152,9 @@ void zeta::parser::Parser::handle_identifier()
         handle_resX(name);
         break;
     }
+    case tokens::_TT_KEY_CONST:
+        handle_define_constants(name); // can be defined anywhere
+        break;
     default:
     {
         if (section == _SECTION_DATA)
@@ -183,6 +190,23 @@ void zeta::parser::Parser::handle_proc_declaration()
     auto temp = (nodes::NodeProcDeclr *)ptr.get();
     temp->proc_name = curr_tok.value;
     nodes.push_back(std::make_unique<nodes::Node>(nodes::_TYPE_INST, kind, std::move(ptr), lexer.get_current_line_no()));
+}
+
+void zeta::parser::Parser::handle_addr_insts()
+{
+    next_token();
+    // Only the move instruction is supported
+    if (curr_tok.type != tokens::_TT_INST_MOV)
+    {
+        send_errors("The 'addr' keyword can only be used with the MOV instruction.");
+        return;
+    }
+    handle_inst_mov();
+    // the mov may also have failed
+    if (err)
+        return;
+    ((nodes::NodeInstMovRegImm *)nodes[nodes.size() - 1]->ptr.get())->is_addr = true; // done
+    next_token();
 }
 
 void zeta::parser::Parser::handle_atm_insts()
@@ -222,6 +246,45 @@ void zeta::parser::Parser::handle_atm_insts()
     }
     temp->kind = (nodes::NodeKind)((uint64_t)temp->kind + 16);
     next_token();
+}
+
+void zeta::parser::Parser::handle_define_constants(std::string name)
+{
+    nodes::NodeKind kind = nodes::NodeKind::_DEF_CONSTANT;
+    next_token();
+    std::unique_ptr<nodes::Base> ptr;
+    ptr = std::make_unique<nodes::NodeDefs>();
+    auto temp = (nodes::NodeDefs *)(ptr.get());
+    switch (curr_tok.type)
+    {
+    case tokens::_TT_FLOAT:
+        temp->type = nodes::DataType::_TYPE_FLOAT;
+        break;
+    case tokens::_TT_NFLOAT:
+        temp->type = nodes::DataType::_TYPE_FLOAT;
+        break;
+    case tokens::_TT_INT:
+        temp->type = nodes::DataType::_TYPE_QWORD;
+        break;
+    case tokens::_TT_NINT:
+        temp->type = nodes::DataType::_TYPE_QWORD;
+        break;
+    case tokens::_TT_STRING:
+        // sorry to do this but long strings cannot be defined but strings of length one only
+        if (curr_tok.value.length() > 1)
+        {
+            send_errors("A constant's definition doesn't accept a full string.");
+            return;
+        }
+        temp->type = nodes::DataType::_TYPE_STRING;
+        break;
+    default:
+        send_errors("A constant definition only accepts numbers, floats and characters.");
+        return;
+    }
+    temp->byte_name = name;
+    temp->byte_val = curr_tok.value;
+    nodes.push_back(std::make_unique<nodes::Node>(nodes::_TYPE_DATA, kind, std::move(ptr), lexer.get_current_line_no()));
 }
 
 void zeta::parser::Parser::handleInstruction()
@@ -589,21 +652,21 @@ void zeta::parser::Parser::handle_inst_loadX()
     auto regr = nodes::_regr_iden_map.find(curr_tok.value);
     if ((regr) == nodes::_regr_iden_map.end())
     {
-        send_errors("Expected a register here as the source.");
+        send_errors("Expected a register here as the destination.");
         return;
     }
     src = regr->second;
     next_token();
     if (curr_tok.type != tokens::_TT_IDENTIFIER)
     {
-        send_errors("Expected a label after to load the source.");
+        send_errors("Expected a label or register after to load the source.");
         return;
     }
     regr = nodes::_regr_iden_map.find(curr_tok.value);
     if (regr != nodes::_regr_iden_map.end())
     {
-        k = x == tokens::_TT_INST_LOADB ? nodes::_INST_LOAD_REG : tokens::_TT_INST_LOADW ? nodes::_INST_LOADW_REG
-                                                                                         : nodes::_INST_LOADD_REG;
+        k = x == tokens::_TT_INST_LOADB ? nodes::_INST_LOADB_REG : x == tokens::_TT_INST_LOADW ? nodes::_INST_LOADW_REG
+                                                                                               : nodes::_INST_LOADD_REG;
         ptr = std::make_unique<nodes::NodeLoadReg>();
         auto temp = (nodes::NodeLoadReg *)ptr.get();
         temp->dest = src;
@@ -611,8 +674,8 @@ void zeta::parser::Parser::handle_inst_loadX()
     }
     else
     {
-        k = x == tokens::_TT_INST_LOADB ? nodes::_INST_LOADB : tokens::_TT_INST_LOADW ? nodes::_INST_LOADW
-                                                                                      : nodes::_INST_LOADD;
+        k = x == tokens::_TT_INST_LOADB ? nodes::_INST_LOADB : x == tokens::_TT_INST_LOADW ? nodes::_INST_LOADW
+                                                                                           : nodes::_INST_LOADD;
         ptr = std::make_unique<nodes::NodeLoad>();
         auto temp = (nodes::NodeLoad *)ptr.get();
         temp->dest = src;
@@ -638,7 +701,7 @@ void zeta::parser::Parser::handle_inst_storeX()
     next_token();
     if (curr_tok.type != tokens::_TT_IDENTIFIER)
     {
-        send_errors("Expected a label after to store the source.");
+        send_errors("Expected a label or register after to store the source.");
         return;
     }
     regr = nodes::_regr_iden_map.find(curr_tok.value);
@@ -797,6 +860,21 @@ void zeta::parser::Parser::handle_inst_mov()
         auto temp = (nodes::NodeInstMovRegImm *)ptr.get();
         temp->dest_regr = regr->second;
         temp->value = curr_tok.value;
+    }
+    else if (curr_tok.type == tokens::_TT_STRING)
+    {
+        kind = is_q ? nodes::NodeKind::_INST_MOV_REG_IMMQ : nodes::NodeKind::_INST_MOV_REG_IMM;
+        ptr = std::make_unique<nodes::NodeInstMovRegImm>();
+        auto temp = (nodes::NodeInstMovRegImm *)ptr.get();
+        if (curr_tok.value.length() == 1)
+        {
+            temp->value = std::to_string((int)(curr_tok.value[0]));
+        }
+        else
+        {
+            send_errors("We cannot have an entire string to move here.");
+            return;
+        }
     }
     else
     {
@@ -1387,7 +1465,7 @@ void zeta::parser::Parser::handle_inst_jX()
     std::unique_ptr<nodes::Base> ptr = std::make_unique<nodes::NodeControlFlow>();
     auto temp = (nodes::NodeControlFlow *)ptr.get();
     temp->_jmp_label_ = curr_tok.value;
-    nodes::NodeKind k = (nodes::NodeKind)(curr + 14);
+    nodes::NodeKind k = (nodes::NodeKind)(curr + 13);
     nodes.push_back(std::make_unique<nodes::Node>(nodes::_TYPE_INST, k, std::move(ptr), lexer.get_current_line_no()));
 }
 
@@ -1407,7 +1485,8 @@ void zeta::parser::Parser::handle_inst_incdec(std::string _m, nodes::NodeKind k)
         return;
     }
     std::unique_ptr<nodes::Base> node = std::make_unique<nodes::NodeOneRegrOperands>();
-    ((nodes::NodeOneRegrOperands *)node.get())->oper_rger = det->second;
+    auto tmp = (nodes::NodeOneRegrOperands *)node.get();
+    tmp->oper_rger = det->second;
     nodes.push_back(std::make_unique<nodes::Node>(nodes::_TYPE_INST, k, std::move(node)));
 }
 

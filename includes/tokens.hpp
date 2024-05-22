@@ -48,6 +48,8 @@ namespace zeta
             _TT_KEY_RESQ,
             _TT_KEY_PROC,
             _TT_KEY_ATM,
+            _TT_KEY_CONST,
+            _TT_KEY_ADDR,
 
             _TT_STRING,
             _TT_INT,
@@ -208,7 +210,7 @@ namespace zeta
 
     namespace nodes
     {
-                enum NodeType
+        enum NodeType
         {
             _TYPE_DATA,
             _TYPE_INST,
@@ -243,6 +245,7 @@ namespace zeta
             _DEF_RESQ,
             _DEF_FLOAT,
             _DEF_LFLOAT,
+            _DEF_CONSTANT,
             // any label that is declared as proc is a procedure while any other are just labels
             _PROC_DECLR, // procedure declaration
             _LABEL,      // A label[Unless semantically verified even procedure definition is a label]
@@ -394,7 +397,7 @@ namespace zeta
             _INST_POPA,
 
             _INST_LEA,
-            
+
             _INST_STORE,
             _INST_LOAD,
             _INST_STOREB,
@@ -412,7 +415,7 @@ namespace zeta
             _INST_LOADW_REG,
             _INST_STORED_REG,
             _INST_LOADD_REG,
-            
+
             _INST_ATM_STORE,
             _INST_ATM_LOAD,
             _INST_ATM_STOREB,
@@ -421,7 +424,7 @@ namespace zeta
             _INST_ATM_LOADW,
             _INST_ATM_STORED,
             _INST_ATM_LOADD,
-            
+
             _INST_EXCG,
             _INST_EXCG8,
             _INST_EXCG16,
@@ -429,7 +432,7 @@ namespace zeta
             _INST_LOOP,
             _INST_INTR,
             _INST_CMPXCHG,
-            
+
             _INST_SET_EXCP,
             _INST_CALL_EXCP,
 

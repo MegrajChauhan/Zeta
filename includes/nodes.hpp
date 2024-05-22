@@ -80,7 +80,7 @@ namespace zeta
             virtual ~Base() {} // Make the base class polymorphic with a virtual destructor
         };
 
-        struct NodeOneRegrOneImm: public Base
+        struct NodeOneRegrOneImm : public Base
         {
             Registers regr;
             std::string imm;
@@ -119,8 +119,9 @@ namespace zeta
         // Define derived classes for each node type
         struct NodeDefs : public Base
         {
-            std::string byte_val;  
+            std::string byte_val;
             std::string byte_name;
+            nodes::DataType type; // for consts
         };
 
         struct NodeLea : public Base
@@ -146,8 +147,9 @@ namespace zeta
         struct NodeInstMovRegImm : public Base
         {
             bool is_iden = false; // interpret value as a variable name
-            Registers dest_regr;  // destination register
-            std::string value;    // the value of to move
+            bool is_addr = false;
+            Registers dest_regr; // destination register
+            std::string value;   // the value of to move
             // the data type is most likely INT or NUM
         };
 
@@ -178,7 +180,6 @@ namespace zeta
         {
             Registers dest, addr_regr;
         };
-
 
         struct NodeLogicalRegImm : public Base
         {

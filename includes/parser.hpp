@@ -92,10 +92,12 @@ namespace zeta
 
             void handle_proc_declaration();
             void handle_atm_insts();
+            void handle_addr_insts();
 
             void handle_defines(std::string, nodes::NodeKind);
             void handle_definefloats(std::string);
             void handle_string(std::string);
+            void handle_define_constants(std::string);
 
             void handle_resX(std::string);
             void handle_label(std::string);

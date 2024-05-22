@@ -38,6 +38,7 @@ namespace zeta
             _VAR,   // the entry is a variable
             _PROC,  // the entry is a procedure
             _LABEL, // the entry is a label
+            _CONST, // don't convert to variable
         };
 
         // a symtable entry

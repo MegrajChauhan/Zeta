@@ -113,11 +113,38 @@ std::string zeta::lexer::Lexer::get_string()
     char starting_quote = *it;
     std::string string;
     consume();
-    if (*it == '\'')
+    if (starting_quote == '\'')
     {
         // For reasons, we need this to hold only one character
-        string += *it;
-        consume();
+        if (*it == '\'')
+            return " "; // interpret as a string with a single space
+        if (*it == '\\')
+        {
+            consume();
+            switch (*it)
+            {
+            case 'n':
+                string += '\n';
+                break;
+            case 't':
+                string += '\t';
+                break;
+            case 'r':
+                string += '\r';
+                break;
+            case '0':
+                string += '\0';
+                break;
+            default:
+                string += *it;
+            }
+            consume();
+        }
+        else
+        {
+            string += *it;
+            consume();
+        }
         if (*it != '\'')
         {
             col -= 1;
@@ -183,6 +210,8 @@ std::string zeta::lexer::Lexer::get_string()
         _add_error_(error::_STRING_NOT_TERMINATED_, "The string was never terminated.");
         return "";
     }
+    if (string.length() == 0)
+        string += ' ';
     return string;
 }
 

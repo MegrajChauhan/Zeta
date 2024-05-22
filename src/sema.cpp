@@ -44,11 +44,23 @@ void zeta::sema::Sema::gen_symtable()
         {
             // if it is a data
             // just check and push it
+            auto var = (nodes::NodeDefs *)node->ptr.get();
+            auto rvar = (nodes::NodeRes *)node->ptr.get();
             switch (node->kind)
             {
+            case nodes::NodeKind::_DEF_CONSTANT:
+            {
+                if (symtable.is_valid(symtable.find_entry(var->byte_name)))
+                {
+                    _l._register_sema_error_(node->line, "Redefinition of constant " + var->byte_name + " when it already exists.", error::_VAR_REDFIN_);
+                    _set_();
+                    break;
+                }
+                symtable.add_entry(var->byte_name, symtable::SymTableEntry(symtable::_CONST, var->byte_val, var->type, 0, node->line));
+                break;
+            }
             case nodes::NodeKind::_DEF_BYTE:
             {
-                auto var = (nodes::NodeDefs *)node->ptr.get();
                 // check if this label already exists
                 // if so then it is not allowed to redefine the same label twice
                 if (symtable.is_valid(symtable.find_entry(var->byte_name)))
@@ -62,7 +74,6 @@ void zeta::sema::Sema::gen_symtable()
             }
             case nodes::NodeKind::_DEF_WORD:
             {
-                auto var = (nodes::NodeDefs *)node->ptr.get();
                 if (symtable.is_valid(symtable.find_entry(var->byte_name)))
                 {
                     _l._register_sema_error_(node->line, "Redefinition of variable " + var->byte_name + " when it already exists.", error::_VAR_REDFIN_);
@@ -74,7 +85,6 @@ void zeta::sema::Sema::gen_symtable()
             }
             case nodes::NodeKind::_DEF_DWORD:
             {
-                auto var = (nodes::NodeDefs *)node->ptr.get();
                 if (symtable.is_valid(symtable.find_entry(var->byte_name)))
                 {
                     _l._register_sema_error_(node->line, "Redefinition of variable " + var->byte_name + " when it already exists.", error::_VAR_REDFIN_);
@@ -86,7 +96,6 @@ void zeta::sema::Sema::gen_symtable()
             }
             case nodes::NodeKind::_DEF_FLOAT:
             {
-                auto var = (nodes::NodeDefs *)node->ptr.get();
                 if (symtable.is_valid(symtable.find_entry(var->byte_name)))
                 {
                     _l._register_sema_error_(node->line, "Redefinition of variable " + var->byte_name + " when it already exists.", error::_VAR_REDFIN_);
@@ -98,7 +107,6 @@ void zeta::sema::Sema::gen_symtable()
             }
             case nodes::NodeKind::_DEF_LFLOAT:
             {
-                auto var = (nodes::NodeDefs *)node->ptr.get();
                 if (symtable.is_valid(symtable.find_entry(var->byte_name)))
                 {
                     _l._register_sema_error_(node->line, "Redefinition of variable " + var->byte_name + " when it already exists.", error::_VAR_REDFIN_);
@@ -110,7 +118,6 @@ void zeta::sema::Sema::gen_symtable()
             }
             case nodes::NodeKind::_DEF_QWORD:
             {
-                auto var = (nodes::NodeDefs *)node->ptr.get();
                 if (symtable.is_valid(symtable.find_entry(var->byte_name)))
                 {
                     _l._register_sema_error_(node->line, "Redefinition of variable " + var->byte_name + " when it already exists.", error::_VAR_REDFIN_);
@@ -122,7 +129,6 @@ void zeta::sema::Sema::gen_symtable()
             }
             case nodes::NodeKind::_DEF_STRING:
             {
-                auto var = (nodes::NodeDefs *)node->ptr.get();
                 if (symtable.is_valid(symtable.find_entry(var->byte_name)))
                 {
                     _l._register_sema_error_(node->line, "Redefinition of variable " + var->byte_name + " when it already exists.", error::_VAR_REDFIN_);
@@ -134,50 +140,46 @@ void zeta::sema::Sema::gen_symtable()
             }
             case nodes::NodeKind::_DEF_RESB:
             {
-                auto var = (nodes::NodeRes *)node->ptr.get();
-                if (symtable.is_valid(symtable.find_entry(var->name)))
+                if (symtable.is_valid(symtable.find_entry(rvar->name)))
                 {
-                    _l._register_sema_error_(node->line, "Redefinition of variable " + var->name + " when it already exists.", error::_VAR_REDFIN_);
+                    _l._register_sema_error_(node->line, "Redefinition of variable " + rvar->name + " when it already exists.", error::_VAR_REDFIN_);
                     _set_();
                     break;
                 }
-                symtable.add_entry(var->name, symtable::SymTableEntry(symtable::_VAR, "", nodes::_TYPE_RESB, var->number, node->line));
+                symtable.add_entry(rvar->name, symtable::SymTableEntry(symtable::_VAR, "", nodes::_TYPE_RESB, rvar->number, node->line));
                 break;
             }
             case nodes::NodeKind::_DEF_RESW:
             {
-                auto var = (nodes::NodeRes *)node->ptr.get();
-                if (symtable.is_valid(symtable.find_entry(var->name)))
+                if (symtable.is_valid(symtable.find_entry(rvar->name)))
                 {
-                    _l._register_sema_error_(node->line, "Redefinition of variable " + var->name + " when it already exists.", error::_VAR_REDFIN_);
+                    _l._register_sema_error_(node->line, "Redefinition of variable " + rvar->name + " when it already exists.", error::_VAR_REDFIN_);
                     _set_();
                     break;
                 }
-                symtable.add_entry(var->name, symtable::SymTableEntry(symtable::_VAR, "", nodes::_TYPE_RESW, var->number, node->line));
+                symtable.add_entry(rvar->name, symtable::SymTableEntry(symtable::_VAR, "", nodes::_TYPE_RESW, rvar->number, node->line));
                 break;
             }
             case nodes::NodeKind::_DEF_RESD:
             {
-                auto var = (nodes::NodeRes *)node->ptr.get();
-                if (symtable.is_valid(symtable.find_entry(var->name)))
+                if (symtable.is_valid(symtable.find_entry(rvar->name)))
                 {
-                    _l._register_sema_error_(node->line, "Redefinition of variable " + var->name + " when it already exists.", error::_VAR_REDFIN_);
+                    _l._register_sema_error_(node->line, "Redefinition of variable " + rvar->name + " when it already exists.", error::_VAR_REDFIN_);
                     _set_();
                     break;
                 }
-                symtable.add_entry(var->name, symtable::SymTableEntry(symtable::_VAR, "", nodes::_TYPE_RESD, var->number, node->line));
+                symtable.add_entry(rvar->name, symtable::SymTableEntry(symtable::_VAR, "", nodes::_TYPE_RESD, rvar->number, node->line));
                 break;
             }
             case nodes::NodeKind::_DEF_RESQ:
             {
-                auto var = (nodes::NodeRes *)node->ptr.get();
-                if (symtable.is_valid(symtable.find_entry(var->name)))
+                if (symtable.is_valid(symtable.find_entry(rvar->name)))
                 {
-                    _l._register_sema_error_(node->line, "Redefinition of variable " + var->name + " when it already exists.", error::_VAR_REDFIN_);
+                    _l._register_sema_error_(node->line, "Redefinition of variable " + rvar->name + " when it already exists.", error::_VAR_REDFIN_);
                     _set_();
                     break;
                 }
-                symtable.add_entry(var->name, symtable::SymTableEntry(symtable::_VAR, "", nodes::_TYPE_RESQ, var->number, node->line));
+                symtable.add_entry(rvar->name, symtable::SymTableEntry(symtable::_VAR, "", nodes::_TYPE_RESQ, rvar->number, node->line));
                 break;
             }
             }

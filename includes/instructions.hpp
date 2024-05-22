@@ -46,6 +46,8 @@ namespace zeta
             {"dlf", _TT_KEY_DLF},
             {"proc", _TT_KEY_PROC},
             {"atm", _TT_KEY_ATM},
+            {"addr", _TT_KEY_ADDR},
+            {"const", _TT_KEY_CONST},
             {":", _TT_OPER_COLON},
             {"mov", _TT_INST_MOV},
             {"hlt", _TT_INST_HLT},

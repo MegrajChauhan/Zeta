@@ -159,7 +159,7 @@ void zeta::codegen::Codegen::gen_data()
             if (data.second.dtype == nodes::DataType::_TYPE_STRING)
             {
                 data_addrs[data.first] = start;
-                start += data.second.value.length();
+                start += data.second.value.length() + 1;
                 for (auto c : data.second.value)
                 {
                     data_bytes.push_back(c);
@@ -245,40 +245,73 @@ void zeta::codegen::Codegen::gen_inst_mov_reg_imm(std::unique_ptr<nodes::Node> &
         size_t addr_of_iden = data_addrs.find(n->value)->second;
         // we can be sure that it is correctly defined
         // also need to check the size of the data
-        auto iden_details = table.find_entry(n->value)->second;
-        switch (iden_details.dtype)
+        if (n->is_addr)
         {
-        case nodes::DataType::_TYPE_STRING:
-        case nodes::DataType::_TYPE_BYTE:
-        {
-            // this is a byte type value so we need to use loadb instruction
-            final_inst.bytes.b1 = opcodes::OP_LOADB;
-            final_inst.bytes.b2 = (n->dest_regr);
+            final_inst.bytes.b1 = opcodes::OP_MOVE_IMM;
+            final_inst.bytes.b2 = n->dest_regr;
             final_inst.whole |= addr_of_iden;
-            // we then need to push the 6 byte address of the
-            break;
         }
-        case nodes::DataType::_TYPE_WORD:
+        else
         {
-            final_inst.bytes.b1 = opcodes::OP_LOADW;
-            final_inst.bytes.b2 = (n->dest_regr);
-            final_inst.whole |= addr_of_iden;
-            break;
-        }
-        case nodes::DataType::_TYPE_DWORD:
-        {
-            final_inst.bytes.b1 = opcodes::OP_LOADD;
-            final_inst.bytes.b2 = (n->dest_regr);
-            final_inst.whole |= addr_of_iden;
-            break;
-        }
-        case nodes::DataType::_TYPE_QWORD:
-        {
-            final_inst.bytes.b1 = opcodes::OP_LOAD;
-            final_inst.bytes.b2 = (n->dest_regr);
-            final_inst.whole |= addr_of_iden;
-            break;
-        }
+            auto tmp = table.find_entry(n->value);
+            auto iden_details = tmp->second;
+            switch (iden_details.type)
+            {
+            case symtable::_CONST:
+
+                switch (iden_details.dtype)
+                {
+                case nodes::DataType::_TYPE_STRING:
+                {
+                    final_inst.bytes.b1 = opcodes::OP_MOVE_IMM;
+                    final_inst.bytes.b2 = (n->dest_regr);
+                    final_inst.whole |= addr_of_iden;
+                    break;
+                }
+                case nodes::DataType::_TYPE_QWORD:
+                {
+                    final_inst.bytes.b1 = opcodes::OP_MOVE_IMM;
+                    final_inst.bytes.b2 = (n->dest_regr);
+                    final_inst.whole |= addr_of_iden;
+                    break;
+                }
+                }
+            default:
+                switch (iden_details.dtype)
+                {
+                case nodes::DataType::_TYPE_STRING:
+                case nodes::DataType::_TYPE_BYTE:
+                {
+                    // this is a byte type value so we need to use loadb instruction
+                    final_inst.bytes.b1 = opcodes::OP_LOADB;
+                    final_inst.bytes.b2 = (n->dest_regr);
+                    final_inst.whole |= addr_of_iden;
+                    // we then need to push the 6 byte address of the
+                    break;
+                }
+                case nodes::DataType::_TYPE_WORD:
+                {
+                    final_inst.bytes.b1 = opcodes::OP_LOADW;
+                    final_inst.bytes.b2 = (n->dest_regr);
+                    final_inst.whole |= addr_of_iden;
+                    break;
+                }
+                case nodes::DataType::_TYPE_DWORD:
+                {
+                    final_inst.bytes.b1 = opcodes::OP_LOADD;
+                    final_inst.bytes.b2 = (n->dest_regr);
+                    final_inst.whole |= addr_of_iden;
+                    break;
+                }
+                case nodes::DataType::_TYPE_QWORD:
+                {
+                    final_inst.bytes.b1 = opcodes::OP_LOAD;
+                    final_inst.bytes.b2 = (n->dest_regr);
+                    final_inst.whole |= addr_of_iden;
+                    break;
+                }
+                }
+            }
         }
     }
     else
@@ -922,7 +955,7 @@ void zeta::codegen::Codegen::gen_inst_jX(std::unique_ptr<nodes::Node> &node)
     Instruction inst;
     auto temp = (nodes::NodeControlFlow *)node->ptr.get();
     size_t address = label_addrs.find(temp->_jmp_label_)->second;
-    inst.bytes.b1 = (opcodes::opcodes)(node->kind - 21);
+    inst.bytes.b1 = (opcodes::opcodes)(node->kind - 22);
     inst.whole |= address;
     inst_bytes.push_back(inst);
 }
@@ -943,6 +976,7 @@ void zeta::codegen::Codegen::gen_inst_cmp(std::unique_ptr<nodes::Node> &node)
         if (!x->is_iden)
         {
             inst.bytes.b1 = opcodes::OP_CMP_IMM;
+            inst.bytes.b8 = x->regr;
             inst_bytes.push_back(inst);
             inst.whole = 0;
             inst.whole = std::stoll(x->val);
@@ -1049,7 +1083,7 @@ void zeta::codegen::Codegen::gen()
         case nodes::NodeKind::_INST_LEA:
         {
             Instruction inst;
-            auto temp = (nodes::NodeLea *)(*iter).get()->ptr.get();
+            auto temp = (nodes::NodeLea *)(*iter)->ptr.get();
             inst.bytes.b1 = opcodes::OP_LEA;
             inst.bytes.b8 = temp->scale;
             inst.bytes.b7 = temp->index;
@@ -1064,7 +1098,7 @@ void zeta::codegen::Codegen::gen()
         case nodes::NodeKind::_INST_STORED:
         {
             Instruction inst;
-            auto temp = (nodes::NodeStore *)(*iter).get()->ptr.get();
+            auto temp = (nodes::NodeStore *)(*iter)->ptr.get();
             inst.bytes.b1 = i->kind == nodes::_INST_STORE ? opcodes::OP_STORE : i->kind == nodes::_INST_STOREB ? opcodes::OP_STOREB
                                                                             : i->kind == nodes::_INST_STOREW   ? opcodes::OP_STOREW
                                                                                                                : opcodes::OP_STORED;
@@ -1079,7 +1113,7 @@ void zeta::codegen::Codegen::gen()
         case nodes::NodeKind::_INST_ATM_STORED:
         {
             Instruction inst;
-            auto temp = (nodes::NodeStore *)(*iter).get()->ptr.get();
+            auto temp = (nodes::NodeStore *)(*iter)->ptr.get();
             inst.bytes.b1 = i->kind == nodes::_INST_ATM_STORE ? opcodes::OP_ATOMIC_STORE : i->kind == nodes::_INST_ATM_STOREB ? opcodes::OP_ATOMIC_STOREB
                                                                                        : i->kind == nodes::_INST_ATM_STOREW   ? opcodes::OP_ATOMIC_STOREW
                                                                                                                               : opcodes::OP_ATOMIC_STORED;
@@ -1094,7 +1128,7 @@ void zeta::codegen::Codegen::gen()
         case nodes::NodeKind::_INST_LOADD:
         {
             Instruction inst;
-            auto temp = (nodes::NodeLoad *)(*iter).get()->ptr.get();
+            auto temp = (nodes::NodeLoad *)(*iter)->ptr.get();
             inst.bytes.b1 = i->kind == nodes::_INST_LOAD ? opcodes::OP_LOAD : i->kind == nodes::_INST_LOADB ? opcodes::OP_LOADB
                                                                           : i->kind == nodes::_INST_LOADW   ? opcodes::OP_LOADW
                                                                                                             : opcodes::OP_LOADD;
@@ -1109,7 +1143,7 @@ void zeta::codegen::Codegen::gen()
         case nodes::NodeKind::_INST_ATM_LOADD:
         {
             Instruction inst;
-            auto temp = (nodes::NodeLoad *)(*iter).get()->ptr.get();
+            auto temp = (nodes::NodeLoad *)(*iter)->ptr.get();
             inst.bytes.b1 = i->kind == nodes::_INST_ATM_LOAD ? opcodes::OP_ATOMIC_LOAD : i->kind == nodes::_INST_ATM_LOADB ? opcodes::OP_ATOMIC_LOADB
                                                                                      : i->kind == nodes::_INST_ATM_LOADW   ? opcodes::OP_ATOMIC_LOADW
                                                                                                                            : opcodes::OP_ATOMIC_LOADD;
@@ -1124,7 +1158,7 @@ void zeta::codegen::Codegen::gen()
         case nodes::NodeKind::_INST_LOADD_REG:
         {
             Instruction inst;
-            auto temp = (nodes::NodeLoadReg *)(*iter).get()->ptr.get();
+            auto temp = (nodes::NodeLoadReg *)(*iter)->ptr.get();
             inst.bytes.b1 = i->kind == nodes::_INST_LOAD_REG ? opcodes::OP_LOAD_REG : i->kind == nodes::_INST_LOADB_REG ? opcodes::OP_LOADB_REG
                                                                                   : i->kind == nodes::_INST_LOADW_REG   ? opcodes::OP_LOADW_REG
                                                                                                                         : opcodes::OP_LOADD_REG;
@@ -1140,7 +1174,7 @@ void zeta::codegen::Codegen::gen()
         case nodes::NodeKind::_INST_STORED_REG:
         {
             Instruction inst;
-            auto temp = (nodes::NodeStoreReg *)(*iter).get()->ptr.get();
+            auto temp = (nodes::NodeStoreReg *)(*iter)->ptr.get();
             inst.bytes.b1 = i->kind == nodes::_INST_STORE_REG ? opcodes::OP_STORE_REG : i->kind == nodes::_INST_STOREB_REG ? opcodes::OP_STOREB_REG
                                                                                     : i->kind == nodes::_INST_STOREW_REG   ? opcodes::OP_STOREW_REG
                                                                                                                            : opcodes::OP_STORED_REG;
@@ -1156,7 +1190,7 @@ void zeta::codegen::Codegen::gen()
         case nodes::NodeKind::_INST_EXCG8:
         {
             Instruction inst;
-            auto temp = (nodes::NodeExcg *)(*iter).get()->ptr.get();
+            auto temp = (nodes::NodeExcg *)(*iter)->ptr.get();
             inst.bytes.b1 = i->kind == nodes::_INST_EXCG16 ? opcodes::OP_EXCG16 : i->kind == nodes::_INST_EXCG32 ? opcodes::OP_EXCG32
                                                                               : i->kind == nodes::_INST_EXCG8    ? opcodes::OP_EXCG8
                                                                                                                  : opcodes::OP_EXCG;
@@ -1170,7 +1204,7 @@ void zeta::codegen::Codegen::gen()
         {
             Instruction inst;
             inst.bytes.b1 = opcodes::OP_PUSH_IMM;
-            inst.whole |= std::stoi(((nodes::NodeOneImmOperand *)(*iter).get())->imm);
+            inst.whole |= std::stoi(((nodes::NodeOneImmOperand *)(*iter)->ptr.get())->imm);
             inst_bytes.push_back(inst);
             break;
         }
@@ -1178,7 +1212,7 @@ void zeta::codegen::Codegen::gen()
         {
             Instruction inst;
             inst.bytes.b1 = opcodes::OP_INTR;
-            inst.whole |= std::stoi(((nodes::NodeOneImmOperand *)(*iter).get())->imm);
+            inst.whole |= std::stoi(((nodes::NodeOneImmOperand *)(*iter)->ptr.get())->imm);
             inst_bytes.push_back(inst);
             break;
         }
@@ -1186,7 +1220,7 @@ void zeta::codegen::Codegen::gen()
         {
             Instruction inst;
             inst.bytes.b1 = opcodes::OP_POP;
-            inst.whole |= (((nodes::NodeOneRegrOperands *)(*iter).get())->oper_rger);
+            inst.whole |= (((nodes::NodeOneRegrOperands *)(*iter)->ptr.get())->oper_rger);
             inst_bytes.push_back(inst);
             break;
         }
@@ -1194,7 +1228,7 @@ void zeta::codegen::Codegen::gen()
         {
             Instruction inst;
             inst.bytes.b1 = opcodes::OP_PUSH_REG;
-            inst.whole |= (((nodes::NodeOneRegrOperands *)(*iter).get())->oper_rger);
+            inst.whole |= (((nodes::NodeOneRegrOperands *)(*iter)->ptr.get())->oper_rger);
             inst_bytes.push_back(inst);
             break;
         }
@@ -1596,7 +1630,7 @@ void zeta::codegen::Codegen::gen()
         {
             Instruction inst;
             inst.bytes.b1 = opcodes::OP_INC;
-            inst.bytes.b8 = ((nodes::NodeOneRegrOperands *)(*iter).get())->oper_rger;
+            inst.bytes.b8 = ((nodes::NodeOneRegrOperands *)((*iter).get()->ptr.get()))->oper_rger;
             inst_bytes.push_back(inst);
             break;
         }
@@ -1604,7 +1638,7 @@ void zeta::codegen::Codegen::gen()
         {
             Instruction inst;
             inst.bytes.b1 = opcodes::OP_DEC;
-            inst.bytes.b8 = ((nodes::NodeOneRegrOperands *)(*iter).get())->oper_rger;
+            inst.bytes.b8 = ((nodes::NodeOneRegrOperands *)((*iter).get()->ptr.get()))->oper_rger;
             inst_bytes.push_back(inst);
             break;
         }
@@ -1612,14 +1646,14 @@ void zeta::codegen::Codegen::gen()
         {
             Instruction inst;
             inst.bytes.b1 = opcodes::OP_NOT;
-            inst.bytes.b8 = ((nodes::NodeOneRegrOperands *)(*iter).get())->oper_rger;
+            inst.bytes.b8 = ((nodes::NodeOneRegrOperands *)((*iter).get()->ptr.get()))->oper_rger;
             inst_bytes.push_back(inst);
             break;
         }
         case nodes::NodeKind::_INST_LSHIFT:
         {
             Instruction inst;
-            auto x = ((nodes::NodeShifts *)(*iter).get());
+            auto x = ((nodes::NodeShifts *)(*iter)->ptr.get());
             inst.bytes.b1 = opcodes::OP_LSHIFT;
             inst.bytes.b8 = std::stoi(x->value);
             inst.bytes.b7 = x->dest_regr;
@@ -1629,7 +1663,7 @@ void zeta::codegen::Codegen::gen()
         case nodes::NodeKind::_INST_RSHIFT:
         {
             Instruction inst;
-            auto x = ((nodes::NodeShifts *)(*iter).get());
+            auto x = ((nodes::NodeShifts *)(*iter)->ptr.get());
             inst.bytes.b1 = opcodes::OP_RSHIFT;
             inst.bytes.b8 = std::stoi(x->value);
             inst.bytes.b7 = x->dest_regr;
@@ -1640,7 +1674,7 @@ void zeta::codegen::Codegen::gen()
         {
             Instruction inst;
             inst.bytes.b1 = opcodes::OP_AND_IMM;
-            auto x = ((nodes::NodeLogicalRegImm *)(*iter).get());
+            auto x = ((nodes::NodeLogicalRegImm *)(*iter)->ptr.get());
             inst.bytes.b8 = x->dest_regr;
             inst_bytes.push_back(inst);
             inst.whole = std::stoull(x->value);
@@ -1651,7 +1685,7 @@ void zeta::codegen::Codegen::gen()
         {
             Instruction inst;
             inst.bytes.b1 = opcodes::OP_AND_REG;
-            auto x = ((nodes::NodeLogicalRegReg *)(*iter).get());
+            auto x = ((nodes::NodeLogicalRegReg *)(*iter)->ptr.get());
             inst.bytes.b8 = x->dest_regr;
             (inst.bytes.b8 <<= 4) | x->src_reg;
             inst_bytes.push_back(inst);
@@ -1661,7 +1695,7 @@ void zeta::codegen::Codegen::gen()
         {
             Instruction inst;
             inst.bytes.b1 = opcodes::OP_OR_IMM;
-            auto x = ((nodes::NodeLogicalRegImm *)(*iter).get());
+            auto x = ((nodes::NodeLogicalRegImm *)(*iter)->ptr.get());
             inst.bytes.b8 = x->dest_regr;
             inst_bytes.push_back(inst);
             inst.whole = std::stoull(x->value);
@@ -1672,7 +1706,7 @@ void zeta::codegen::Codegen::gen()
         {
             Instruction inst;
             inst.bytes.b1 = opcodes::OP_OR_REG;
-            auto x = ((nodes::NodeLogicalRegReg *)(*iter).get());
+            auto x = ((nodes::NodeLogicalRegReg *)(*iter)->ptr.get());
             inst.bytes.b8 = x->dest_regr;
             (inst.bytes.b8 <<= 4) | x->src_reg;
             inst_bytes.push_back(inst);
@@ -1682,7 +1716,7 @@ void zeta::codegen::Codegen::gen()
         {
             Instruction inst;
             inst.bytes.b1 = opcodes::OP_XOR_IMM;
-            auto x = ((nodes::NodeLogicalRegImm *)(*iter).get());
+            auto x = ((nodes::NodeLogicalRegImm *)(*iter)->ptr.get());
             inst.bytes.b8 = x->dest_regr;
             inst_bytes.push_back(inst);
             inst.whole = std::stoull(x->value);
@@ -1693,7 +1727,7 @@ void zeta::codegen::Codegen::gen()
         {
             Instruction inst;
             inst.bytes.b1 = opcodes::OP_XOR_REG;
-            auto x = ((nodes::NodeLogicalRegReg *)(*iter).get());
+            auto x = ((nodes::NodeLogicalRegReg *)(*iter)->ptr.get());
             inst.bytes.b8 = x->dest_regr;
             (inst.bytes.b8 <<= 4) | x->src_reg;
             inst_bytes.push_back(inst);
