@@ -263,6 +263,23 @@ void zeta::sema::Sema::validate_symbols()
         // we only check for those instructions that may use variables and symbols
         switch (inst->kind)
         {
+        case nodes::NodeKind::_INST_SVA_MEM:
+        case nodes::NodeKind::_INST_SVC_MEM:
+        {
+            auto node = (nodes::NodeOneRegrOneImm *)inst->ptr.get();
+            auto x = symtable.find_entry(node->imm);
+            // we will even complain here
+            // The VM will automatically only read 16 bits from the memory
+            // The type doesn't matter to us here
+            // Remember? The worst assembler!
+            if (!symtable.is_valid(x))
+            {
+                _l._register_sema_error_(inst->line, "The operand '" + node->imm + "' in this instruction is not a valid identifier.", error::_IDEN_DOESNT_EXIST_);
+                _set_();
+                break;
+            }
+            break;
+        }
         case nodes::NodeKind::_INST_CMPXCHG:
         {
             auto node = (nodes::NodeCmpXchg *)inst->ptr.get();

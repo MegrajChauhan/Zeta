@@ -233,6 +233,8 @@ namespace zeta
 
             OP_SET_EXCP,
             OP_CALL_EXCP,
+            OP_SVA_MEM,
+            OP_SVC_MEM,
         };
     };
 };

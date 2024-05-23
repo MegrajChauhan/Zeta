@@ -436,6 +436,9 @@ namespace zeta
             _INST_SET_EXCP,
             _INST_CALL_EXCP,
 
+            _INST_SVA_MEM,
+            _INST_SVC_MEM,
+
             _INST_HLT, // this doesn't need its own structure
         };
     };

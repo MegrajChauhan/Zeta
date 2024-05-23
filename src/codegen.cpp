@@ -1024,9 +1024,29 @@ void zeta::codegen::Codegen::gen_inst_sva_svc(std::unique_ptr<nodes::Node> &node
 {
     Instruction inst;
     auto x = (nodes::NodeOneRegrOneImm *)node->ptr.get();
-    inst.bytes.b1 = node->kind == nodes::_INST_SVA ? opcodes::OP_SVA : opcodes::OP_SVC;
-    inst.bytes.b2 = x->regr;
-    inst.whole |= std::stoi(x->imm);
+    switch (node->kind)
+    {
+    case nodes::_INST_SVA:
+        inst.bytes.b1 = opcodes::OP_SVA;
+        inst.bytes.b2 = x->regr;
+        inst.whole |= std::stoi(x->imm);
+        break;
+    case nodes::_INST_SVC:
+        inst.bytes.b1 = opcodes::OP_SVC;
+        inst.bytes.b2 = x->regr;
+        inst.whole |= std::stoi(x->imm);
+        break;
+    case nodes::_INST_SVA_MEM:
+        inst.bytes.b1 = opcodes::OP_SVA_MEM;
+        inst.bytes.b2 = x->regr;
+        inst.whole |= data_addrs[x->imm];
+        break;
+    case nodes::_INST_SVC_MEM:
+        inst.bytes.b1 = opcodes::OP_SVC_MEM;
+        inst.bytes.b2 = x->regr;
+        inst.whole |= data_addrs[x->imm];
+        break;
+    }
     inst_bytes.push_back(inst);
 }
 
@@ -1260,6 +1280,8 @@ void zeta::codegen::Codegen::gen()
         }
         case nodes::NodeKind::_INST_SVA:
         case nodes::NodeKind::_INST_SVC:
+        case nodes::NodeKind::_INST_SVA_MEM:
+        case nodes::NodeKind::_INST_SVC_MEM:
             gen_inst_sva_svc(*iter);
             break;
         case nodes::NodeKind::_INST_MOV_REG_IMMQ:

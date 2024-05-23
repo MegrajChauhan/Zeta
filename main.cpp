@@ -11,9 +11,9 @@
 
 using namespace zeta;
 
-#define VERSION "Masm- v0.0.0-alpha.1a"
+#define VERSION "Masm- v0.0.0-alpha.1c"
 
-static std::string version_message = "Masm: An Assembler for the Merry Virtual Machine.\n"
+static std::string version_message = "Zeta: An Assembler for the Merry Virtual Machine.\n"
                                      "Latest version: ";
 
 int main(int argv, char **argc)

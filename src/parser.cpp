@@ -1602,18 +1602,31 @@ void zeta::parser::Parser::handle_inst_sva_svc()
         return;
     }
     next_token();
-    // These both instructions only take +ve values
-    if (curr_tok.type != tokens::_TT_INT)
+    std::unique_ptr<nodes::Base> ptr;
+    nodes::NodeKind k;
+    if (curr_tok.type == tokens::_TT_IDENTIFIER)
+    {
+        if (nodes::_regr_iden_map.find(curr_tok.value) != nodes::_regr_iden_map.end())
+        {
+            send_errors("SVA and SVC only accept immediates and variables.\n");
+            return;
+        }
+        k = (temp.type == tokens::_TT_INST_SVA) ? nodes::_INST_SVA_MEM : nodes::_INST_SVC_MEM;
+    }
+    else if (curr_tok.type == tokens::_TT_INT)
+    {
+        k = (temp.type == tokens::_TT_INST_SVA) ? nodes::_INST_SVA : nodes::_INST_SVC;
+    }
+    else
     {
         send_errors("Expected a positive value here.");
         return;
     }
-    std::unique_ptr<nodes::Base> ptr;
     ptr = std::make_unique<nodes::NodeOneRegrOneImm>();
     auto tmp = (nodes::NodeOneRegrOneImm *)ptr.get();
     tmp->imm = curr_tok.value;
     tmp->regr = res->second;
-    nodes.push_back(std::make_unique<nodes::Node>(nodes::_TYPE_INST, (temp.type == tokens::_TT_INST_SVA) ? nodes::_INST_SVA : nodes::_INST_SVC, std::move(ptr)));
+    nodes.push_back(std::make_unique<nodes::Node>(nodes::_TYPE_INST, k, std::move(ptr)));
 }
 
 void zeta::parser::Parser::handle_inst_push()
